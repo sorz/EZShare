@@ -6,33 +6,27 @@ import org.apache.commons.cli.*;
  * Entrance of client program.
  * Created by xierch on 2017/3/22.
  */
-public class Client {
+public class Client extends CLILauncher {
+    private Client(String[] args, String usage) {
+        super(args, usage);
+    }
+
     public static void main(String[] args) {
-        Options options = getCLIOptions();
-        CommandLine line;
-        try {
-            CommandLineParser parser = new DefaultParser();
-            line = parser.parse(options, args);
-        } catch (ParseException e) {
-            System.err.println("Failed to parse CLI arguments.\n" + e);
-            printUsage(options);
-            System.exit(1);
-            return;
-        }
-        if (line.hasOption("help"))
-            printUsage(options);
-
+        Client client = new Client(args, "java -cp ezshare.jar EZShare.Client ...");
+        System.exit(client.launch());
     }
 
-    private static void printUsage(Options options) {
-        HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("java -cp ezshare.jar EZShare.Client ...", options);
+    @Override
+    int run(CommandLine line) {
+        System.out.print("Hello, client.");
+        return 0;
     }
 
-    private static Options getCLIOptions() {
-        Option help = new Option( "help", "print this message" );
+    @Override
+    Options getCLIOptions() {
+        Options options = super.getCLIOptions();
+
         Option channel = new Option("channel", true, "channel");
-        Option debug = new Option("debug", "print debugging information");
         Option description = new Option("description", true, "resource description");
         Option exchange = new Option("exchange", "exchange server list with server");
         Option fetch = new Option("fetch", "fetch resources from server");
@@ -49,10 +43,7 @@ public class Client {
         Option tags = new Option("tags", true, "resource tags, tag1,tag2,tag3,...");
         Option uri = new Option("uri", true, "resource URI");
 
-        Options options = new Options();
-        options.addOption(help);
         options.addOption(channel);
-        options.addOption(debug);
         options.addOption(description);
         options.addOption(exchange);
         options.addOption(fetch);
