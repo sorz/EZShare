@@ -35,7 +35,7 @@ abstract class CLILauncher {
 
     private void printUsage() {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp(usage, getCLIOptions());
+        formatter.printHelp(getUsage(), getCLIOptions());
     }
 
     private String getUsage() {
