@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ezshare.iml" filepath="$PROJECT_DIR$/.idea/modules/ezshare.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ezshare_main.iml" filepath="$PROJECT_DIR$/.idea/modules/ezshare_main.iml" group="ezshare" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/ezshare_test.iml" filepath="$PROJECT_DIR$/.idea/modules/ezshare_test.iml" group="ezshare" />
+    </modules>
+  </component>
+</project>

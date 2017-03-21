@@ -1,0 +1,26 @@
+group 'org.sorz.lab'
+version '0.1-SNAPSHOT'
+
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'EZShare',
+                'Implementation-Version': version
+    }
+    baseName = project.name + '-all'
+    //noinspection GroovyAssignabilityCheck
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+//noinspection GroovyAssignabilityCheck
+dependencies {
+    compile 'commons-cli:commons-cli:1.4'
+}
