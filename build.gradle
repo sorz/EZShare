@@ -23,4 +23,5 @@ task fatJar(type: Jar) {
 //noinspection GroovyAssignabilityCheck
 dependencies {
     compile 'commons-cli:commons-cli:1.4'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.0.1'
 }
