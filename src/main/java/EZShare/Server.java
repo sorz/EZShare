@@ -1,18 +1,24 @@
 package EZShare;
 
+import EZShare.server.ServerDaemon;
 import EZShare.server.ServerOptions;
 import org.apache.commons.cli.*;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.security.SecureRandom;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Entrance of server program.
  * Created by xierch on 2017/3/22.
  */
 public class Server extends CLILauncher<ServerOptions> {
+    private final static Logger LOGGER = Logger.getLogger(Server.class.getName());
+
     private Server(String[] args, String usage) {
         super(args, usage);
     }
@@ -24,8 +30,20 @@ public class Server extends CLILauncher<ServerOptions> {
 
     @Override
     int run(ServerOptions options) {
-        System.out.println("Hello, server.");
-        System.out.println(options.getSecret());
+        ServerDaemon server = new ServerDaemon(options);
+        try {
+            server.start();
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE,"failed to start server: " + e);
+            return -2;
+        }
+        try {
+            server.runForever();
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE,"error on running server: " + e);
+        } finally {
+            server.stop();
+        }
         return 0;
     }
 
@@ -92,6 +110,7 @@ public class Server extends CLILauncher<ServerOptions> {
         String secret = line.getOptionValue("secret");
         if (secret == null) {
             secret = new BigInteger(DEFAULT_SECRET_ENTROPY_BITS, new SecureRandom()).toString(32);
+            LOGGER.info("random secret generated: " + secret);
         }
 
         boolean debug = line.hasOption("debug");
