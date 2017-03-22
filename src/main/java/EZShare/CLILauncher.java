@@ -6,7 +6,7 @@ import org.apache.commons.cli.*;
  * Provide CLI argument related common methods used on both Server and Client.
  * Created by xierch on 2017/3/22.
  */
-abstract class CLILauncher {
+abstract class CLILauncher<T> {
     private final String[] args;
     private final String usage;
 
@@ -30,7 +30,15 @@ abstract class CLILauncher {
             printUsage();
             return 0;
         }
-        return run(line);
+        T settings;
+        try {
+            settings = parseCommandLine(line);
+        } catch (ParseException e) {
+            System.err.println("Failed to parse CLI arguments.\n" + e);
+            printUsage();
+            return 1;
+        }
+        return run(settings);
     }
 
     private void printUsage() {
@@ -55,5 +63,7 @@ abstract class CLILauncher {
         return options;
     };
 
-    abstract int run(CommandLine line);
+    abstract T parseCommandLine(CommandLine line) throws ParseException;
+
+    abstract int run(T settings);
 }

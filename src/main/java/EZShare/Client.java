@@ -1,12 +1,13 @@
 package EZShare;
 
+import EZShare.client.ClientOptions;
 import org.apache.commons.cli.*;
 
 /**
  * Entrance of client program.
  * Created by xierch on 2017/3/22.
  */
-public class Client extends CLILauncher {
+public class Client extends CLILauncher<ClientOptions> {
     private Client(String[] args, String usage) {
         super(args, usage);
     }
@@ -17,7 +18,7 @@ public class Client extends CLILauncher {
     }
 
     @Override
-    int run(CommandLine line) {
+    int run(ClientOptions options) {
         System.out.print("Hello, client.");
         return 0;
     }
@@ -61,4 +62,10 @@ public class Client extends CLILauncher {
         options.addOption(uri);
         return options;
     }
+
+    @Override
+    ClientOptions parseCommandLine(CommandLine line) throws ParseException {
+        return null;
+    }
+
 }
