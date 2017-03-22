@@ -2,6 +2,9 @@ package EZShare;
 
 import org.apache.commons.cli.*;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Provide CLI argument related common methods used on both Server and Client.
  * Created by xierch on 2017/3/22.
@@ -30,6 +33,12 @@ abstract class CLILauncher<T> {
             printUsage();
             return 0;
         }
+
+        System.setProperty("java.util.logging.SimpleFormatter.format",
+                "%1$tF %1$tT [%4$s]\t[%3$s]\t%5$s%6$s%n");
+        Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
+        logger.setLevel(line.hasOption("debug") ? Level.FINE : Level.INFO);
+
         T settings;
         try {
             settings = parseCommandLine(line);
