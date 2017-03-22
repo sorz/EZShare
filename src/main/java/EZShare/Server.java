@@ -113,8 +113,7 @@ public class Server extends CLILauncher<ServerOptions> {
             LOGGER.info("random secret generated: " + secret);
         }
 
-        boolean debug = line.hasOption("debug");
-        return new ServerOptions(hostname, limit, interval, port, secret, debug);
+        return new ServerOptions(hostname, limit, interval, port, secret);
     }
 
 }
