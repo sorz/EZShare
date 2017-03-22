@@ -71,10 +71,14 @@ public class Server extends CLILauncher<ServerOptions> {
         double limit = DEFAULT_CONNECTION_INTERVAL_LIMIT;
         if (line.hasOption("connectionintervallimit"))
             limit = ((Number) line.getParsedOptionValue("connectionintervallimit")).doubleValue();
+        if (limit < 0)
+            throw new ParseException("connection interval limit cannot be negative");
 
         int interval = DEFAULT_EXCHANGE_INTERVAL;
         if (line.hasOption("exchangeinterval"))
             interval = ((Number) line.getParsedOptionValue("exchangeinterval")).intValue();
+        if (interval <= 0)
+            throw new ParseException("exchange interval must be positive.");
 
         int port = DEFAULT_PORT;
         if (line.hasOption("port"))
