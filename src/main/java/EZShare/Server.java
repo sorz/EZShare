@@ -3,8 +3,10 @@ package EZShare;
 import EZShare.server.ServerOptions;
 import org.apache.commons.cli.*;
 
+import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.security.SecureRandom;
 
 /**
  * Entrance of server program.
@@ -22,7 +24,8 @@ public class Server extends CLILauncher<ServerOptions> {
 
     @Override
     int run(ServerOptions options) {
-        System.out.print("Hello, server.");
+        System.out.println("Hello, server.");
+        System.out.println(options.getSecret());
         return 0;
     }
 
@@ -44,7 +47,6 @@ public class Server extends CLILauncher<ServerOptions> {
         limit.setType(Number.class);
         interval.setType(Number.class);
         port.setType(Number.class);
-        secret.setRequired(true);
 
         options.addOption(hostname);
         options.addOption(limit);
@@ -59,6 +61,7 @@ public class Server extends CLILauncher<ServerOptions> {
         final int DEFAULT_PORT = 3780;
         final int DEFAULT_EXCHANGE_INTERVAL = 10 * 60;  // 10 minutes
         final double DEFAULT_CONNECTION_INTERVAL_LIMIT = 1.0;  // 1 second
+        final int DEFAULT_SECRET_ENTROPY_BITS = 128;
 
         String hostname = line.getOptionValue("advertisedhostname");
         if (hostname == null) {
@@ -87,6 +90,10 @@ public class Server extends CLILauncher<ServerOptions> {
             throw new ParseException("port number must within 0 to 65535.");
 
         String secret = line.getOptionValue("secret");
+        if (secret == null) {
+            secret = new BigInteger(DEFAULT_SECRET_ENTROPY_BITS, new SecureRandom()).toString(32);
+        }
+
         boolean debug = line.hasOption("debug");
         return new ServerOptions(hostname, limit, interval, port, secret, debug);
     }
