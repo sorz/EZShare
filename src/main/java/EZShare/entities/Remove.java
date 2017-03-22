@@ -5,13 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * For JSON. PUBLISH command.
- * Create a resource on the server.
+ * Remove the resource on the server.
  *
  * Created by xierch on 2017/3/23.
  */
-public class Publish extends CommandWithResource {
+public class Remove extends CommandWithResource {
     @JsonCreator
-    public Publish(@JsonProperty("resource") Resource resource) {
+    public Remove(@JsonProperty("resource") Resource resource) {
         super(resource);
     }
 }

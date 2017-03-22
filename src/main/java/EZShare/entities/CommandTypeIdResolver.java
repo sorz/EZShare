@@ -6,6 +6,8 @@ import com.fasterxml.jackson.databind.jsontype.TypeIdResolver;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.fasterxml.jackson.databind.util.ClassUtil;
 
+import java.lang.reflect.Modifier;
+
 /**
  * To resolve command type.
  * Reference:
@@ -50,6 +52,8 @@ public class CommandTypeIdResolver implements TypeIdResolver {
             // Return null will cause Jackson throws JsonMappingException.
             return null;
         }
+        if (Modifier.isAbstract(type.getModifiers()))
+            return null;
         return TypeFactory.defaultInstance().constructSpecializedType(baseType, type);
     }
 
