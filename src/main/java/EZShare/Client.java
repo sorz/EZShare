@@ -1,14 +1,17 @@
 package EZShare;
 
+import EZShare.client.ClientMain;
 import EZShare.client.ClientOptions;
 import javafx.util.Pair;
 import org.apache.commons.cli.*;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -16,6 +19,8 @@ import java.util.stream.Collectors;
  * Created by xierch on 2017/3/22.
  */
 public class Client extends CLILauncher<ClientOptions> {
+    private final static Logger LOGGER = Logger.getLogger(Client.class.getName());
+
     private Client(String[] args, String usage) {
         super(args, usage);
     }
@@ -27,7 +32,12 @@ public class Client extends CLILauncher<ClientOptions> {
 
     @Override
     int run(ClientOptions options) {
-        System.out.print("Hello, client.");
+        try {
+            ClientMain.execute(options);
+        } catch (IOException e) {
+            LOGGER.warning("I/O error: " + e);
+            return -2;
+        }
         return 0;
     }
 

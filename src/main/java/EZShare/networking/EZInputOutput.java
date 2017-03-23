@@ -36,12 +36,15 @@ public class EZInputOutput {
 
     public Command readCommand() throws IOException {
         String jsonString = getInputStream().readUTF();
+        LOGGER.fine("read command:" + jsonString);
         return mapper.readValue(jsonString, Command.class);
     }
 
     public void sendJSON(Object value) throws IOException {
         String jsonString = mapper.writeValueAsString(value);
+        LOGGER.fine("send JSON:" + jsonString);
         getOutputStream().writeUTF(jsonString);
+        getOutputStream().flush();
     }
 
     public Socket getSocket() {

@@ -83,6 +83,10 @@ public class ClientOptions {
         return this;
     }
 
+    public String getCommand() {
+        return command;
+    }
+
     public String getChannel() {
         return channel;
     }
