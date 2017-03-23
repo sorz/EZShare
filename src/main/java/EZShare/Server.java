@@ -51,7 +51,7 @@ public class Server extends CLILauncher<ServerOptions> {
     Options getCLIOptions() {
         Options options = super.getCLIOptions();
 
-        Option hostname = new Option( "advertisedhostname", true,
+        Option hostname = new Option("advertisedhostname", true,
                 "advertised hostname" );
         Option limit = new Option("connectionintervallimit", true,
                 "connection interval limit in seconds");
