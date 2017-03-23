@@ -1,7 +1,15 @@
 package EZShare;
 
 import EZShare.client.ClientOptions;
+import javafx.util.Pair;
 import org.apache.commons.cli.*;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Entrance of client program.
@@ -44,6 +52,8 @@ public class Client extends CLILauncher<ClientOptions> {
         Option tags = new Option("tags", true, "resource tags, tag1,tag2,tag3,...");
         Option uri = new Option("uri", true, "resource URI");
 
+        port.setType(Number.class);
+
         options.addOption(channel);
         options.addOption(description);
         options.addOption(exchange);
@@ -65,7 +75,103 @@ public class Client extends CLILauncher<ClientOptions> {
 
     @Override
     ClientOptions parseCommandLine(CommandLine line) throws ParseException {
-        return null;
+        final String[] COMMANDS = {"publish", "remove", "share", "query", "fetch", "exchange"};
+        final int DEFAULT_PORT = 3780;
+
+        ClientOptions options = new ClientOptions();
+        String command = null;
+        for (String cmd : COMMANDS) {
+            if (line.hasOption(cmd)) {
+                if (command == null)
+                    command = cmd;
+                else
+                    throw new ParseException(String.format("conflict command -%s and -%s", command, cmd));
+            }
+        }
+        if (command == null)
+            throw new ParseException("must specify a command");
+        options.setCommand(command);
+
+        options.setChannel(line.getOptionValue("channel", ""))
+                .setDescription(line.getOptionValue("description", ""))
+                .setHost(line.getOptionValue("host", "localhost"))
+                .setName(line.getOptionValue("name", ""))
+                .setOwner(line.getOptionValue("owner", ""))
+                .setSecret(line.getOptionValue("secret"));
+
+        // TODO: remove repeating code on parse port number.
+        int port = DEFAULT_PORT;
+        if (line.hasOption("port"))
+            port = ((Number) line.getParsedOptionValue("port")).intValue();
+        if ((port & ~0xffff) != 0)
+            throw new ParseException("port number must within 0 to 65535.");
+        options.setPort(port);
+
+        if (line.hasOption("servers")) {
+            List<Pair<String, Integer>> servers = new ArrayList<>();
+            for (String server : line.getOptionValue("servers").split(",")) {
+                String[] hostPort = server.trim().split(":");
+                String host = hostPort[0].trim();
+                int portNo = DEFAULT_PORT;
+                if (hostPort.length >= 2) {
+                    try {
+                        portNo = Integer.parseInt(hostPort[1].trim());
+                    } catch (NumberFormatException e) {
+                        throw new ParseException("malformed port number on -servers: " + e);
+                    }
+                    if ((portNo & ~0xffff) != 0)
+                        throw new ParseException("port number must within 0 to 65535.");
+                }
+                servers.add(new Pair<>(host, portNo));
+            }
+            options.setServers(servers);
+        }
+
+        List<String> tags = Arrays.stream(line.getOptionValue("tags", "").split(","))
+                .map(String::trim).collect(Collectors.toList());
+        options.setTags(tags);
+
+        if (line.hasOption("uri")) {
+            URI uri;
+            try {
+                uri = new URI(line.getOptionValue("uri"));
+            } catch (URISyntaxException e) {
+                throw new ParseException("malformed URI: " + e);
+            }
+            options.setUri(uri);
+        }
+
+        if ("*".equals(options.getOwner()))
+            throw new ParseException("owner cannot be \"*\".");
+        switch (command) {
+            case "publish":
+                if (options.getUri() == null)
+                    throw new ParseException("must specify -uri");
+                if ("file".equals(options.getUri().getScheme()))
+                    throw new ParseException("URI cannot be a file://.");
+                break;
+            case "remove":
+                if (options.getUri() == null)
+                    throw new ParseException("must specify -uri");
+                break;
+            case "share":
+            case "fetch":
+                if (options.getUri() == null)
+                    throw new ParseException("must specify -uri");
+                if (!"file".equals(options.getUri().getScheme()))
+                    throw new ParseException("URI must be a file://.");
+                break;
+            case "query":
+                break;
+            case "exchange":
+                if (options.getServers() == null)
+                    throw new ParseException("must specify -servers");
+                break;
+            default:
+                break;
+        }
+
+        return options;
     }
 
 }
