@@ -2,8 +2,9 @@ package EZShare;
 
 import org.apache.commons.cli.*;
 
+import java.util.Arrays;
 import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.LogManager;
 
 /**
  * Provide CLI argument related common methods used on both Server and Client.
@@ -36,8 +37,10 @@ abstract class CLILauncher<T> {
 
         System.setProperty("java.util.logging.SimpleFormatter.format",
                 "%1$tF %1$tT [%4$s]\t[%3$s]\t%5$s%6$s%n");
-        Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-        logger.setLevel(line.hasOption("debug") ? Level.FINE : Level.INFO);
+        Level level = line.hasOption("debug") ? Level.FINE : Level.INFO;
+        Arrays.stream(LogManager.getLogManager().getLogger("").getHandlers())
+                .forEach(h -> h.setLevel(level));
+        LogManager.getLogManager().getLogger("").setLevel(level);
 
         T settings;
         try {
