@@ -1,5 +1,6 @@
 package EZShare.client;
 
+import EZShare.entities.Command;
 import EZShare.entities.Publish;
 import EZShare.entities.Resource;
 import EZShare.entities.Response;
@@ -18,15 +19,6 @@ import java.util.logging.Logger;
 public class ClientMain {
     private final static Logger LOGGER = Logger.getLogger(ClientMain.class.getName());
 
-    // TODO: use enums?
-    private final static String CMD_PUBLISH = "PUBLISH";
-    private final static String CMD_REMOVE = "REMOVE";
-    private final static String CMD_SHARE = "SHARE";
-    private final static String CMD_QUERY = "QUERY";
-    private final static String CMD_FETCH = "FETCH";
-    private final static String CMD_EXCHANGE = "EXCHANGE";
-
-
     private final EZInputOutput io;
 
 
@@ -39,9 +31,8 @@ public class ClientMain {
         LOGGER.fine(String.format("%s to %s:%d...", options.getCommand(),
                 options.getHost(), options.getPort()));
         ClientMain client = new ClientMain(options.getHost(), options.getPort());
-        String cmd = options.getCommand();
         try {
-            if (cmd.equals(CMD_EXCHANGE)) {
+            if (Command.CMD.EXCHANGE == options.getCommand()) {
                 client.exchange(options.getServers());
             } else {
                 Resource resource = new Resource();
@@ -51,15 +42,17 @@ public class ClientMain {
                 resource.setOwner(options.getOwner());
                 resource.setTags(options.getTags());
                 resource.setUri(options.getUri().toString());
-                switch (cmd) {
-                    case CMD_PUBLISH:
+                switch (options.getCommand()) {
+                    case PUBLISH:
                         client.publish(resource);
                         break;
-                    case CMD_REMOVE:
+                    case REMOVE:
                         break;
-                    case CMD_SHARE:
+                    case SHARE:
                         break;
-                    case CMD_FETCH:
+                    case FETCH:
+                        break;
+                    case EXCHANGE:
                         break;
                     default:
                         break;

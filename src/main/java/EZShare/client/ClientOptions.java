@@ -1,5 +1,6 @@
 package EZShare.client;
 
+import EZShare.entities.Command;
 import javafx.util.Pair;
 
 import java.net.URI;
@@ -10,7 +11,7 @@ import java.util.List;
  * Created by xierch on 2017/3/22.
  */
 public class ClientOptions {
-    private String command;
+    private Command.CMD command;
     private String channel;
     private String description;
     private String host;
@@ -23,8 +24,8 @@ public class ClientOptions {
     private List<String> tags;
     private URI uri;
 
-    public ClientOptions setCommand(String command) {
-        this.command = command.toUpperCase();
+    public ClientOptions setCommand(Command.CMD command) {
+        this.command = command;
         return this;
     }
 
@@ -83,7 +84,7 @@ public class ClientOptions {
         return this;
     }
 
-    public String getCommand() {
+    public Command.CMD getCommand() {
         return command;
     }
 

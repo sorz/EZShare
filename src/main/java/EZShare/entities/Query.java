@@ -22,7 +22,7 @@ public class Query extends CommandWithResourceTemplate {
     }
 
     @Override
-    public String getCommandName() {
-        return "QUERY";
+    public CMD getCMD() {
+        return CMD.QUERY;
     }
 }

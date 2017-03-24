@@ -16,7 +16,7 @@ public class Publish extends CommandWithResource {
     }
 
     @Override
-    public String getCommandName() {
-        return "PUBLISH";
+    public CMD getCMD() {
+        return CMD.PUBLISH;
     }
 }

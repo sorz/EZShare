@@ -46,36 +46,39 @@ class Client {
         }
         LOGGER.info("command " + command);
         try {
-            switch (command.getCommandName()) {
-                case "PUBLISH":
+            switch (command.getCMD()) {
+                case PUBLISH:
                     commandHandler.doPublish((Publish) command);
                     io.sendJSON(Response.createSuccess());
                     break;
-                case "REMOVE":
+                case REMOVE:
                     commandHandler.doRemove((Remove) command);
                     io.sendJSON(Response.createSuccess());
                     break;
-                case "SHARE":
+                case SHARE:
                     commandHandler.doShare((Share) command);
                     io.sendJSON(Response.createSuccess());
                     break;
-                case "QUERY":
+                case QUERY:
                     List<Resource> resources = commandHandler.doQuery((Query) command);
                     io.sendJSON(Response.createSuccess());
                     resources.forEach(io::uncheckedSendJSON);
                     io.sendJSON(new ResultSize(resources.size()));
                     break;
-                case "FETCH":
+                case FETCH:
                     Pair<Resource, InputStream> resInput = commandHandler.doFetch((Fetch) command);
                     io.sendJSON(Response.createSuccess());
                     io.sendJSON(resInput.getLeft());
                     IOUtils.copy(resInput.getRight(), io.getOutputStream());
                     io.sendJSON(new ResultSize(1));
                     break;
+                case EXCHANGE:
+                    // TODO
+                    break;
             }
         } catch (CommandHandleException e) {
             LOGGER.info(String.format("Fail to handle command %s: %s",
-                    command.getCommandName(), e.getMessage()));
+                    command.getCMD().name(), e.getMessage()));
             io.sendJSON(Response.createError(e.getMessage()));
             return;
         } catch (UncheckedIOException e) {

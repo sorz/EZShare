@@ -24,7 +24,7 @@ public class Share extends CommandWithResource {
     }
 
     @Override
-    public String getCommandName() {
-        return "SHARE";
+    public CMD getCMD() {
+        return CMD.SHARE;
     }
 }

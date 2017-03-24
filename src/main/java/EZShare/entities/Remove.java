@@ -17,7 +17,7 @@ public class Remove extends CommandWithResource {
 
 
     @Override
-    public String getCommandName() {
-        return "REMOVE";
+    public CMD getCMD() {
+        return CMD.REMOVE;
     }
 }

@@ -14,7 +14,7 @@ public class Fetch extends CommandWithResourceTemplate {
     }
 
     @Override
-    public String getCommandName() {
-        return "FETCH";
+    public CMD getCMD() {
+        return CMD.FETCH;
     }
 }

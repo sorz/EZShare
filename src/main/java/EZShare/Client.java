@@ -2,6 +2,7 @@ package EZShare;
 
 import EZShare.client.ClientMain;
 import EZShare.client.ClientOptions;
+import EZShare.entities.Command;
 import javafx.util.Pair;
 import org.apache.commons.cli.*;
 
@@ -85,22 +86,18 @@ public class Client extends CLILauncher<ClientOptions> {
 
     @Override
     ClientOptions parseCommandLine(CommandLine line) throws ParseException {
-        final String[] COMMANDS = {"publish", "remove", "share", "query", "fetch", "exchange"};
         final int DEFAULT_PORT = 3780;
 
         ClientOptions options = new ClientOptions();
-        String command = null;
-        for (String cmd : COMMANDS) {
-            if (line.hasOption(cmd)) {
-                if (command == null)
-                    command = cmd;
-                else
-                    throw new ParseException(String.format("conflict command -%s and -%s", command, cmd));
-            }
-        }
-        if (command == null)
+        Command.CMD[] commands = Arrays.stream(Command.CMD.values())
+                .filter((cmd -> line.hasOption(cmd.name().toLowerCase())))
+                .toArray(Command.CMD[]::new);
+        if (commands.length == 0)
             throw new ParseException("must specify a command");
-        options.setCommand(command);
+        else if (commands.length > 1)
+            throw new ParseException(String.format("conflict command -%s and -%s",
+                    commands[0].name(), commands[1].name()));
+        options.setCommand(commands[0]);
 
         options.setChannel(line.getOptionValue("channel", ""))
                 .setDescription(line.getOptionValue("description", ""))
@@ -153,27 +150,27 @@ public class Client extends CLILauncher<ClientOptions> {
 
         if ("*".equals(options.getOwner()))
             throw new ParseException("owner cannot be \"*\".");
-        switch (command) {
-            case "publish":
+        switch (options.getCommand()) {
+            case PUBLISH:
                 if (options.getUri() == null)
                     throw new ParseException("must specify -uri");
                 if ("file".equals(options.getUri().getScheme()))
                     throw new ParseException("URI cannot be a file://.");
                 break;
-            case "remove":
+            case REMOVE:
                 if (options.getUri() == null)
                     throw new ParseException("must specify -uri");
                 break;
-            case "share":
-            case "fetch":
+            case SHARE:
+            case FETCH:
                 if (options.getUri() == null)
                     throw new ParseException("must specify -uri");
                 if (!"file".equals(options.getUri().getScheme()))
                     throw new ParseException("URI must be a file://.");
                 break;
-            case "query":
+            case QUERY:
                 break;
-            case "exchange":
+            case EXCHANGE:
                 if (options.getServers() == null)
                     throw new ParseException("must specify -servers");
                 break;
