@@ -18,7 +18,7 @@ public class Resource {
     private String ezserver;
     // resourceSize only appears in FETCH response.
     // The bytes of the file.
-    @JsonInclude(JsonInclude.Include.NON_NULL)
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private long resourceSize;
 
     public String getName() {

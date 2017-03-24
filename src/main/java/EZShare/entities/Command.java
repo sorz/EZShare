@@ -1,5 +1,6 @@
 package EZShare.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 
@@ -14,5 +15,7 @@ public abstract class Command {
         PUBLISH, REMOVE, SHARE, QUERY, FETCH, EXCHANGE
     }
 
+    @JsonIgnore
     public abstract CMD getCMD();
+
 }
