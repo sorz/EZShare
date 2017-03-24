@@ -47,6 +47,14 @@ public class EZInputOutput {
         getOutputStream().flush();
     }
 
+    public void uncheckedSendJSON(Object value) throws UncheckedIOException {
+        try {
+            sendJSON(value);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public Socket getSocket() {
         return socket;
     }

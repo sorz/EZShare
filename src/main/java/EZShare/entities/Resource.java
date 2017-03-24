@@ -1,5 +1,7 @@
 package EZShare.entities;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 import java.util.List;
 
 /**
@@ -14,6 +16,10 @@ public class Resource {
     private String channel;
     private String owner;
     private String ezserver;
+    // resourceSize only appears in FETCH response.
+    // The bytes of the file.
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private long resourceSize;
 
     public String getName() {
         return name;
@@ -69,5 +75,14 @@ public class Resource {
 
     public void setEzserver(String ezserver) {
         this.ezserver = ezserver;
+    }
+
+    public long getResourceSize() {
+        return resourceSize;
+    }
+
+    public Resource setResourceSize(long resourceSize) {
+        this.resourceSize = resourceSize;
+        return this;
     }
 }

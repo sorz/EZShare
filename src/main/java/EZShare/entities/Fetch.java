@@ -12,4 +12,9 @@ public class Fetch extends CommandWithResourceTemplate {
     public Fetch(@JsonProperty("resourceTemplate") Resource resourceTemplate) {
         super(resourceTemplate);
     }
+
+    @Override
+    public String getCommandName() {
+        return "FETCH";
+    }
 }

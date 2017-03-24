@@ -14,4 +14,10 @@ public class Remove extends CommandWithResource {
     public Remove(@JsonProperty("resource") Resource resource) {
         super(resource);
     }
+
+
+    @Override
+    public String getCommandName() {
+        return "REMOVE";
+    }
 }

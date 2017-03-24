@@ -14,4 +14,9 @@ public class Publish extends CommandWithResource {
     public Publish(@JsonProperty("resource") Resource resource) {
         super(resource);
     }
+
+    @Override
+    public String getCommandName() {
+        return "PUBLISH";
+    }
 }

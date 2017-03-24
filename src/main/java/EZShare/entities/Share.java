@@ -22,4 +22,9 @@ public class Share extends CommandWithResource {
         super(resource);
         this.secret = secret;
     }
+
+    @Override
+    public String getCommandName() {
+        return "SHARE";
+    }
 }
