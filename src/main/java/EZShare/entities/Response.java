@@ -1,6 +1,7 @@
 package EZShare.entities;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -26,6 +27,7 @@ public class Response {
         this.response = response;
     }
 
+    @JsonIgnore
     public String getErrorMessage() {
         return errorMessage;
     }
@@ -34,14 +36,9 @@ public class Response {
         this.errorMessage = errorMessage;
     }
 
+    @JsonIgnore
     public boolean isSuccess() {
         return getResponse() != null && getResponse().toLowerCase().equals(RESPONSE_SUCCESS);
-    }
-
-    public boolean isError() {
-        // Unknown response also treated as "normal" error here.
-        // Shall we throw a exception instead?
-        return !isSuccess();
     }
 
     @JsonCreator
@@ -57,6 +54,14 @@ public class Response {
         response.setResponse(RESPONSE_ERROR);
         response.setErrorMessage(errorMessage);
         return response;
+    }
+
+    @Override
+    public String toString() {
+        if (isSuccess())
+            return "Response: success";
+        else
+            return String.format("Response: %s - %s", getResponse(),  getErrorMessage());
     }
 
 }

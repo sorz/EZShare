@@ -44,7 +44,8 @@ public class ClientMain {
                 resource.setUri(options.getUri().toString());
                 switch (options.getCommand()) {
                     case PUBLISH:
-                        client.publish(resource);
+                        Response response = client.publish(resource);
+                        System.out.println(response);
                         break;
                     case REMOVE:
                         break;
@@ -69,8 +70,7 @@ public class ClientMain {
 
     private Response publish(Resource resource) throws IOException {
         io.sendJSON(new Publish(resource));
-        io.readCommand();
-        return null;
+        return io.readResponse();
     }
 
     private Response exchange(List<Pair<String, Integer>> servers) {

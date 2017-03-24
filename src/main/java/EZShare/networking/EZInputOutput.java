@@ -1,6 +1,7 @@
 package EZShare.networking;
 
 import EZShare.entities.Command;
+import EZShare.entities.Response;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
@@ -34,10 +35,18 @@ public class EZInputOutput {
         }
     }
 
+    private String readString() throws IOException{
+        String string = getInputStream().readUTF();
+        LOGGER.fine("read: " + string);
+        return string;
+    }
+
     public Command readCommand() throws IOException {
-        String jsonString = getInputStream().readUTF();
-        LOGGER.fine("read command:" + jsonString);
-        return mapper.readValue(jsonString, Command.class);
+        return mapper.readValue(readString(), Command.class);
+    }
+
+    public Response readResponse() throws IOException {
+        return mapper.readValue(readString(), Response.class);
     }
 
     public void sendJSON(Object value) throws IOException {
