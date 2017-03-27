@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -20,8 +22,9 @@ public class ServerDaemon implements ClientCommandHandler {
     private final static Logger LOGGER = Logger.getLogger(ServerDaemon.class.getName());
 
     private final ServerOptions options;
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final ResourceStorage resourceStorage = new MemoryResourceStorage();
     private ServerSocket serverSocket;
-    private ExecutorService executorService = Executors.newCachedThreadPool();
     private boolean isRunning;
 
 
@@ -61,7 +64,32 @@ public class ServerDaemon implements ClientCommandHandler {
 
     @Override
     public void doPublish(Publish cmd) throws CommandHandleException {
-
+        Resource resource = cmd.getResource();
+        if (resource == null)
+            throw new CommandHandleException("missing resource");
+        URI uri;
+        try {
+            uri = resource.getNormalizedUri();
+        } catch (URISyntaxException e) {
+            LOGGER.info("fail to parse URI: " + e);
+            throw new CommandHandleException("invalid resource");
+        }
+        if (uri.getScheme().equals("file")) {
+            LOGGER.info("cannot publish with a file:// URI");
+            throw new CommandHandleException("invalid resource");
+        }
+        if (resource.getOwner().equals("*")) {
+            LOGGER.info("cannot publish with user \"*\"");
+            throw new CommandHandleException("invalid resource");
+        }
+        synchronized (resourceStorage) {
+            Resource oldResource = resourceStorage.get(resource.getChannel(), uri);
+            if (oldResource != null && !oldResource.getOwner().equals(resource.getOwner()))
+                throw new CommandHandleException("cannot publish resource");
+            resourceStorage.put(resource.getChannel(), uri, resource);
+            LOGGER.fine(String.format("new resource (%s, %s) published.",
+                    resource.getChannel(), uri));
+        }
     }
 
     @Override

@@ -1,7 +1,10 @@
 package EZShare.entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 
 /**
@@ -47,6 +50,11 @@ public class Resource {
 
     public String getUri() {
         return uri;
+    }
+
+    @JsonIgnore
+    public URI getNormalizedUri() throws URISyntaxException {
+        return new URI(getUri());
     }
 
     public void setUri(String uri) {
