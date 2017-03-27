@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  * Client who connect and send command to server.
  * Created by xierch on 2017/3/23.
  */
-class Client {
+class Client implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(Client.class.getName());
 
     final private EZInputOutput io;
@@ -31,7 +31,18 @@ class Client {
         io.close();
     }
 
-    void handle() throws IOException {
+    @Override
+    public void run() {
+        try {
+            handleCommand();
+        } catch (IOException e) {
+            LOGGER.warning("error on handle client " + io + ": " + e);
+        } finally {
+            close();
+        }
+    }
+
+    private void handleCommand() throws IOException {
         Command command;
         try {
             command = io.readCommand();
@@ -80,7 +91,6 @@ class Client {
             LOGGER.info(String.format("Fail to handle command %s: %s",
                     command.getCMD().name(), e.getMessage()));
             io.sendJSON(Response.createError(e.getMessage()));
-            return;
         } catch (UncheckedIOException e) {
             throw e.getCause();
         }

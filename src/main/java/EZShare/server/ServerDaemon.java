@@ -8,6 +8,8 @@ import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 /**
@@ -19,6 +21,7 @@ public class ServerDaemon implements ClientCommandHandler {
 
     private final ServerOptions options;
     private ServerSocket serverSocket;
+    private ExecutorService executorService = Executors.newCachedThreadPool();
     private boolean isRunning;
 
 
@@ -37,17 +40,11 @@ public class ServerDaemon implements ClientCommandHandler {
         while (isRunning) {
             Socket socket = serverSocket.accept();
             LOGGER.info("accept connection from " + socket.getInetAddress());
-            Client client = null;
             try {
-                client = new Client(socket, this);
-                client.handle();
+                Client client = new Client(socket, this);
+                executorService.submit(client);
             } catch (IOException e) {
                 LOGGER.warning("error on handle client " + socket.getInetAddress() + ": " + e);
-            } finally {
-                if (client != null) {
-                    LOGGER.info("disconnect from " + client);
-                    client.close();
-                }
             }
         }
     }
