@@ -64,6 +64,21 @@ public class ServerDaemon implements ClientCommandHandler {
     }
 
     /**
+     * Copy a resource and set its owner to "*" if exists, and also set the
+     * ezServer.
+     * @param resource to copy.
+     * @return copied resource.
+     */
+    private Resource copyAsAnonymousResource(Resource resource) {
+        Resource newResource = new Resource(resource);
+        newResource.setEzserver(String.format("%s:%d",
+                options.getHostname(), options.getPort()));
+        if (!resource.getName().isEmpty())
+            newResource.setName("*");
+        return newResource;
+    }
+
+    /**
      * Get resource from command. That resource will have a legal URI and
      * non-"*" owner. Resource's URI will be canonicalized.
      * @param command that must contain a Resource object.
@@ -158,14 +173,10 @@ public class ServerDaemon implements ClientCommandHandler {
             throw new CommandHandleException("missing resourceTemplate");
         if (template.getNormalizedUri() != null)
             template.setUri(template.getNormalizedUri().toString());
-        String server = String.format("%s:%d", options.getHostname(), options.getPort());
         synchronized (resourceStorage) {
-            return resourceStorage.templateQuery(template).stream()
-                    .map(resource -> {
-                        Resource newResource = new Resource(resource);
-                        newResource.setEzserver(server);
-                        return newResource;
-                    }).collect(Collectors.toList());
+            return resourceStorage.templateQuery(template)
+                    .map(this::copyAsAnonymousResource)
+                    .collect(Collectors.toList());
         }
     }
 

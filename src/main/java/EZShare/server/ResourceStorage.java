@@ -4,7 +4,7 @@ import EZShare.entities.Resource;
 import com.sun.istack.internal.Nullable;
 
 import java.net.URI;
-import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Put, update, lookup resources.
@@ -33,5 +33,5 @@ public interface ResourceStorage {
         return true;
     }
 
-    public List<Resource> templateQuery(Resource template);
+    public Stream<Resource> templateQuery(Resource template);
 }

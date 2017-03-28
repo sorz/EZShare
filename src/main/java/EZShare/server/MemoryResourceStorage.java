@@ -5,8 +5,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.net.URI;
 import java.util.HashMap;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Store resources on memory.
@@ -31,7 +30,7 @@ public class MemoryResourceStorage implements ResourceStorage {
     }
 
     @Override
-    public List<Resource> templateQuery(Resource template) {
+    public Stream<Resource> templateQuery(Resource template) {
         return resources.values().stream()
                 // The template channel equals (case sensitive) the resource channel:
                 .filter(res -> res.getChannel().equals(template.getChannel()))
@@ -57,7 +56,7 @@ public class MemoryResourceStorage implements ResourceStorage {
                         // The template description and name are both ""
                         (template.getName().isEmpty()
                                 && template.getDescription().isEmpty())
-                ).collect(Collectors.toList());
+                );
     }
 
 }
