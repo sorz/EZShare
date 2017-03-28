@@ -41,6 +41,20 @@ public class Resource {
         resourceSize = 0;
     }
 
+    /**
+     * Clone a resource.
+     * @param resource to clone.
+     */
+    public Resource(Resource resource) {
+        this.name = resource.getName();
+        this.tags = new ArrayList<>(resource.getTags());
+        this.description = resource.getDescription();
+        this.uri = resource.getUri();
+        this.channel = resource.getChannel();
+        this.owner = resource.getOwner();
+        this.ezserver = resource.getEzserver();
+        this.resourceSize = resource.getResourceSize();
+    }
 
     public String getName() {
         return name;

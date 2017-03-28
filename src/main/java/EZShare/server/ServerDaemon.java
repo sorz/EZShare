@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Main class for server.
@@ -157,8 +158,14 @@ public class ServerDaemon implements ClientCommandHandler {
             throw new CommandHandleException("missing resourceTemplate");
         if (template.getNormalizedUri() != null)
             template.setUri(template.getNormalizedUri().toString());
+        String server = String.format("%s:%d", options.getHostname(), options.getPort());
         synchronized (resourceStorage) {
-            return resourceStorage.templateQuery(template);
+            return resourceStorage.templateQuery(template).stream()
+                    .map(resource -> {
+                        Resource newResource = new Resource(resource);
+                        newResource.setEzserver(server);
+                        return newResource;
+                    }).collect(Collectors.toList());
         }
     }
 
