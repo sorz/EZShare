@@ -2,6 +2,8 @@ package EZShare.networking;
 
 import EZShare.entities.Command;
 import EZShare.entities.Response;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
@@ -16,10 +18,11 @@ public class EZInputOutput {
     private final static Logger LOGGER = Logger.getLogger(EZInputOutput.class.getName());
 
     private final ObjectMapper mapper = ObjectMapperGetter.get();
-
     private final Socket socket;
     private final DataInputStream inputStream;
     private final DataOutputStream outputStream;
+
+    private String readBufferedLine;
 
     public EZInputOutput(Socket socket) throws IOException {
         this.socket = socket;
@@ -35,18 +38,43 @@ public class EZInputOutput {
         }
     }
 
+    /**
+     * Read a UTF string from socket.
+     * @return the String read.
+     * @throws IOException if error on read.
+     */
     private String readString() throws IOException{
         String string = getInputStream().readUTF();
         LOGGER.fine("read: " + string);
         return string;
     }
 
+    /**
+     * Read a JSON value from either read from socket or last fail-to-parsed
+     * string in buffer.
+     * When JsonParseException or JsonMappingException throws, current string
+     * will be kept on buffer for next parsing.
+     * @param type same as ObjectMapper.readValue()
+     * @param <T> same as ObjectMapper.readValue()
+     * @return same as ObjectMapper.readValue()
+     * @throws IOException if error on read socket.
+     * @throws JsonParseException same as ObjectMapper.readValue()
+     * @throws JsonMappingException same as ObjectMapper.readValue()
+     */
+    public <T> T readJSON(Class<T> type) throws IOException {
+        if (readBufferedLine == null)
+            readBufferedLine = readString();
+        T result = mapper.readValue(readBufferedLine, type);
+        readBufferedLine = null;
+        return result;
+    }
+
     public Command readCommand() throws IOException {
-        return mapper.readValue(readString(), Command.class);
+        return readJSON(Command.class);
     }
 
     public Response readResponse() throws IOException {
-        return mapper.readValue(readString(), Response.class);
+        return readJSON(Response.class);
     }
 
     public void sendJSON(Object value) throws IOException {
@@ -63,6 +91,8 @@ public class EZInputOutput {
             throw new UncheckedIOException(e);
         }
     }
+
+
 
     public Socket getSocket() {
         return socket;

@@ -2,10 +2,12 @@ package EZShare.client;
 
 import EZShare.entities.*;
 import EZShare.networking.EZInputOutput;
-import javafx.util.Pair;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -49,6 +51,11 @@ public class ClientMain {
                     case SHARE:
                         System.out.println(client.share(resource, options.getSecret()));
                         break;
+                    case QUERY:
+                        Pair<Response, List<Resource>> responseResources = client.query(resource);
+                        System.out.println(responseResources.getLeft());
+                        responseResources.getRight().forEach(System.out::println);
+                        break;
                     case FETCH:
                         break;
                     case EXCHANGE:
@@ -79,6 +86,26 @@ public class ClientMain {
     private Response share(Resource resource, String secret) throws IOException {
         io.sendJSON(new Share(resource, secret));
         return io.readResponse();
+    }
+
+    private Pair<Response, List<Resource>> query(Resource template) throws IOException {
+        io.sendJSON(new Query(template, false));
+        Response response = io.readResponse();
+        List<Resource> resources = new ArrayList<>();
+        if (!response.isSuccess())
+            return Pair.of(response, resources);
+        while (true) {
+            try {
+                resources.add(io.readJSON(Resource.class));
+            } catch (JsonMappingException e) {
+                ResultSize resultSize = io.readJSON(ResultSize.class);
+                if (resultSize.get() != resources.size())
+                    LOGGER.warning(String.format("received %d result(s) but result size is %d",
+                            resources.size(), resultSize.get()));
+                break;
+            }
+        }
+        return Pair.of(response, resources);
     }
 
     private Response exchange(List<Pair<String, Integer>> servers) {

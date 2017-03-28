@@ -1,7 +1,7 @@
 package EZShare.client;
 
 import EZShare.entities.Command;
-import javafx.util.Pair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.net.URI;
 import java.util.List;
