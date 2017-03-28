@@ -3,6 +3,7 @@ package EZShare.server;
 import EZShare.entities.*;
 import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
@@ -90,20 +91,16 @@ public class ServerDaemon implements ClientCommandHandler {
     public void doPublish(Publish cmd) throws CommandHandleException {
         Resource resource = verifyThenGetResource(cmd);
         URI uri = resource.getNormalizedUri();
-        if (uri.getScheme().equals("file")) {
-            LOGGER.info("cannot publish with a file:// URI");
-            throw new CommandHandleException("invalid resource");
-        }
-        if (uri.getAuthority() == null) {
-            LOGGER.info("publish URI must be absolute");
+        if ("file".equals(uri.getScheme())
+                || uri.getAuthority() == null
+                || !uri.isAbsolute()) {
+            LOGGER.fine("URI illegal to publish");
             throw new CommandHandleException("invalid resource");
         }
 
         synchronized (resourceStorage) {
-            Resource oldResource = resourceStorage.get(resource.getChannel(), uri);
-            if (oldResource != null && !oldResource.getOwner().equals(resource.getOwner()))
+            if (!resourceStorage.updateResource(resource))
                 throw new CommandHandleException("cannot publish resource");
-            resourceStorage.put(resource.getChannel(), uri, resource);
             LOGGER.fine(String.format("new resource (%s, %s) published.",
                     resource.getChannel(), uri));
         }
@@ -125,7 +122,31 @@ public class ServerDaemon implements ClientCommandHandler {
 
     @Override
     public void doShare(Share cmd) throws CommandHandleException {
+        if (cmd.getSecret() == null || cmd.getResource() == null)
+            // redundant checking & fuzzy error message here,
+            // but the requirement enforce that.
+            throw new CommandHandleException("missing resource and/or secret");
+        if (!options.getSecret().equals(cmd.getSecret()))
+            throw new CommandHandleException("incorrect secret");
+        Resource resource = verifyThenGetResource(cmd);
+        URI uri = resource.getNormalizedUri();
+        if (!"file".equals(uri.getScheme())
+                || uri.getAuthority() != null
+                || !uri.isAbsolute()) {
+            LOGGER.fine("URI illegal to publish");
+            throw new CommandHandleException("invalid resource");
+        }
+        if (!new File(uri).canRead()) {
+            LOGGER.fine("URI file cannot be read");
+            throw new CommandHandleException("invalid resource");
+        }
 
+        synchronized (resourceStorage) {
+            if (!resourceStorage.updateResource(resource))
+                throw new CommandHandleException("cannot share resource");
+            LOGGER.fine(String.format("new resource (%s, %s) shared.",
+                    resource.getChannel(), uri));
+        }
     }
 
     @Override

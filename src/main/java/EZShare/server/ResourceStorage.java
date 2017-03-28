@@ -14,4 +14,14 @@ public interface ResourceStorage {
     @Nullable
     public Resource get(String channel, URI uri);
     void remove(String channel, URI uri);
+
+    /**
+     * Add a new resource or replace the old resource.
+     * It will find old resource with key (channel, uri). If not found,
+     * add resource directly. If found, only replace the old one when
+     * the owner of old & new resource are the same.
+     * @param resource to add or replace.
+     * @return false if failed to replace (due to different owner).
+     */
+    boolean updateResource(Resource resource);
 }

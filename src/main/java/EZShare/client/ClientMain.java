@@ -47,6 +47,7 @@ public class ClientMain {
                         System.out.println(client.remove(resource));
                         break;
                     case SHARE:
+                        System.out.println(client.share(resource, options.getSecret()));
                         break;
                     case FETCH:
                         break;
@@ -72,6 +73,11 @@ public class ClientMain {
 
     private Response remove(Resource resource) throws IOException {
         io.sendJSON(new Remove(resource));
+        return io.readResponse();
+    }
+
+    private Response share(Resource resource, String secret) throws IOException {
+        io.sendJSON(new Share(resource, secret));
         return io.readResponse();
     }
 

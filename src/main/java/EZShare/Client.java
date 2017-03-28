@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import static EZShare.entities.Command.CMD.FETCH;
+
 /**
  * Entrance of client program.
  * Created by xierch on 2017/3/22.
@@ -162,6 +164,9 @@ public class Client extends CLILauncher<ClientOptions> {
                     throw new ParseException("must specify -uri");
                 break;
             case SHARE:
+                if (options.getSecret() == null)
+                    throw new ParseException("must specify -secret");
+                // no break: continue to check FETCH's
             case FETCH:
                 if (options.getUri() == null)
                     throw new ParseException("must specify -uri");
