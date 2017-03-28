@@ -28,13 +28,4 @@ public class MemoryResourceStorage implements ResourceStorage {
         resources.remove(Pair.of(channel, uri));
     }
 
-    @Override
-    public boolean updateResource(Resource resource) {
-        Pair<String, URI> key = Pair.of(resource.getChannel(),resource.getNormalizedUri());
-        Resource oldResource = resources.get(key);
-        if (oldResource != null && !oldResource.getOwner().equals(resource.getOwner()))
-            return false;
-        resources.put(key, resource);
-        return true;
-    }
 }

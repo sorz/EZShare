@@ -23,5 +23,12 @@ public interface ResourceStorage {
      * @param resource to add or replace.
      * @return false if failed to replace (due to different owner).
      */
-    boolean updateResource(Resource resource);
+    public default boolean updateResource(Resource resource) {
+        URI uri = resource.getNormalizedUri();
+        Resource oldResource = get(resource.getChannel(), uri);
+        if (oldResource != null && !oldResource.getOwner().equals(resource.getOwner()))
+            return false;
+        put(resource.getChannel(), uri, resource);
+        return true;
+    }
 }
