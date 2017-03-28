@@ -55,7 +55,6 @@ class Client implements Runnable {
             io.sendJSON(Response.createError("missing or incorrect type for command"));
             return;
         }
-        LOGGER.info("command " + command);
         try {
             switch (command.getCMD()) {
                 case PUBLISH:

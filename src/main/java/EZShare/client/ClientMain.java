@@ -1,9 +1,6 @@
 package EZShare.client;
 
-import EZShare.entities.Command;
-import EZShare.entities.Publish;
-import EZShare.entities.Resource;
-import EZShare.entities.Response;
+import EZShare.entities.*;
 import EZShare.networking.EZInputOutput;
 import javafx.util.Pair;
 
@@ -44,10 +41,10 @@ public class ClientMain {
                 resource.setUri(options.getUri().toString());
                 switch (options.getCommand()) {
                     case PUBLISH:
-                        Response response = client.publish(resource);
-                        System.out.println(response);
+                        System.out.println(client.publish(resource));
                         break;
                     case REMOVE:
+                        System.out.println(client.remove(resource));
                         break;
                     case SHARE:
                         break;
@@ -70,6 +67,11 @@ public class ClientMain {
 
     private Response publish(Resource resource) throws IOException {
         io.sendJSON(new Publish(resource));
+        return io.readResponse();
+    }
+
+    private Response remove(Resource resource) throws IOException {
+        io.sendJSON(new Remove(resource));
         return io.readResponse();
     }
 

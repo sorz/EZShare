@@ -53,8 +53,12 @@ public class Resource {
     }
 
     @JsonIgnore
-    public URI getNormalizedUri() throws URISyntaxException {
-        return new URI(getUri());
+    public URI getNormalizedUri() {
+        try {
+            return new URI(getUri());
+        } catch (URISyntaxException e) {
+            return null;
+        }
     }
 
     public void setUri(String uri) {

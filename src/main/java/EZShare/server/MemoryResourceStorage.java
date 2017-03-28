@@ -22,4 +22,9 @@ public class MemoryResourceStorage implements ResourceStorage {
     public Resource get(String channel, URI uri) {
         return resources.get(Pair.of(channel, uri));
     }
+
+    @Override
+    public void remove(String channel, URI uri) {
+        resources.remove(Pair.of(channel, uri));
+    }
 }

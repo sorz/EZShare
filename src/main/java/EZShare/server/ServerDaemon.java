@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,26 +61,44 @@ public class ServerDaemon implements ClientCommandHandler {
         }
     }
 
-    @Override
-    public void doPublish(Publish cmd) throws CommandHandleException {
-        Resource resource = cmd.getResource();
+    /**
+     * Get resource from command. That resource will have a legal URI and
+     * non-"*" owner.
+     * @param command that must contain a Resource object.
+     * @return A verified resource from this command.
+     * @throws CommandHandleException when command's resource is null, blank
+     * or invalid URI, "*" as resource owner.
+     */
+    private Resource verifyThenGetResource(CommandWithResource command)
+            throws CommandHandleException {
+        Resource resource = command.getResource();
         if (resource == null)
             throw new CommandHandleException("missing resource");
-        URI uri;
-        try {
-            uri = resource.getNormalizedUri();
-        } catch (URISyntaxException e) {
-            LOGGER.info("fail to parse URI: " + e);
-            throw new CommandHandleException("invalid resource");
-        }
-        if (uri.getScheme().equals("file")) {
-            LOGGER.info("cannot publish with a file:// URI");
+        URI uri = resource.getNormalizedUri();
+        if (uri == null) {
+            LOGGER.info("fail to parse URI");
             throw new CommandHandleException("invalid resource");
         }
         if (resource.getOwner().equals("*")) {
             LOGGER.info("cannot publish with user \"*\"");
             throw new CommandHandleException("invalid resource");
         }
+        return resource;
+    }
+
+    @Override
+    public void doPublish(Publish cmd) throws CommandHandleException {
+        Resource resource = verifyThenGetResource(cmd);
+        URI uri = resource.getNormalizedUri();
+        if (uri.getScheme().equals("file")) {
+            LOGGER.info("cannot publish with a file:// URI");
+            throw new CommandHandleException("invalid resource");
+        }
+        if (uri.getAuthority() == null) {
+            LOGGER.info("publish URI must be absolute");
+            throw new CommandHandleException("invalid resource");
+        }
+
         synchronized (resourceStorage) {
             Resource oldResource = resourceStorage.get(resource.getChannel(), uri);
             if (oldResource != null && !oldResource.getOwner().equals(resource.getOwner()))
@@ -94,7 +111,16 @@ public class ServerDaemon implements ClientCommandHandler {
 
     @Override
     public void doRemove(Remove cmd) throws CommandHandleException {
-
+        Resource resource = verifyThenGetResource(cmd);
+        URI uri = resource.getNormalizedUri();
+        synchronized (resourceStorage) {
+            Resource oldResource = resourceStorage.get(resource.getChannel(), uri);
+            if (oldResource == null || !oldResource.getOwner().equals(resource.getOwner()))
+                throw new CommandHandleException("cannot remove resource");
+            resourceStorage.remove(resource.getChannel(), uri);
+            LOGGER.fine(String.format("resource (%s, %s) removed.",
+                    resource.getChannel(), uri));
+        }
     }
 
     @Override

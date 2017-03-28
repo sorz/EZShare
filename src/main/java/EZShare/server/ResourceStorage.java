@@ -13,4 +13,5 @@ public interface ResourceStorage {
     public void put(String channel, URI uri, Resource resource);
     @Nullable
     public Resource get(String channel, URI uri);
+    void remove(String channel, URI uri);
 }

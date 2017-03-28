@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * For JSON. A command with one resource field.
  * Created by xierch on 2017/3/23.
  */
-abstract class CommandWithResource extends Command {
+public abstract class CommandWithResource extends Command {
     private final Resource resource;
 
     public Resource getResource() {
