@@ -4,6 +4,7 @@ import EZShare.entities.Resource;
 import com.sun.istack.internal.Nullable;
 
 import java.net.URI;
+import java.util.List;
 
 /**
  * Put, update, lookup resources.
@@ -31,4 +32,6 @@ public interface ResourceStorage {
         put(resource.getChannel(), uri, resource);
         return true;
     }
+
+    public List<Resource> templateQuery(Resource template);
 }

@@ -64,7 +64,7 @@ public class ServerDaemon implements ClientCommandHandler {
 
     /**
      * Get resource from command. That resource will have a legal URI and
-     * non-"*" owner.
+     * non-"*" owner. Resource's URI will be canonicalized.
      * @param command that must contain a Resource object.
      * @return A verified resource from this command.
      * @throws CommandHandleException when command's resource is null, blank
@@ -75,15 +75,16 @@ public class ServerDaemon implements ClientCommandHandler {
         Resource resource = command.getResource();
         if (resource == null)
             throw new CommandHandleException("missing resource");
+        if (resource.getOwner().equals("*")) {
+            LOGGER.info("cannot publish with user \"*\"");
+            throw new CommandHandleException("invalid resource");
+        }
         URI uri = resource.getNormalizedUri();
         if (uri == null) {
             LOGGER.info("fail to parse URI");
             throw new CommandHandleException("invalid resource");
         }
-        if (resource.getOwner().equals("*")) {
-            LOGGER.info("cannot publish with user \"*\"");
-            throw new CommandHandleException("invalid resource");
-        }
+        resource.setUri(uri.toString());
         return resource;
     }
 
@@ -151,7 +152,14 @@ public class ServerDaemon implements ClientCommandHandler {
 
     @Override
     public List<Resource> doQuery(Query cmd) throws CommandHandleException {
-        return null;
+        Resource template = cmd.getResourceTemplate();
+        if (template == null)
+            throw new CommandHandleException("missing resourceTemplate");
+        if (template.getNormalizedUri() != null)
+            template.setUri(template.getNormalizedUri().toString());
+        synchronized (resourceStorage) {
+            return resourceStorage.templateQuery(template);
+        }
     }
 
     @Override
