@@ -16,7 +16,6 @@ public class Response {
 
     private String response;
     // Following line tell Jackson to ignore errorMessage on success response.
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String errorMessage;
 
     public String getResponse() {
@@ -27,7 +26,7 @@ public class Response {
         this.response = response;
     }
 
-    @JsonIgnore
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public String getErrorMessage() {
         return errorMessage;
     }
