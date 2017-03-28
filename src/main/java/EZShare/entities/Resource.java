@@ -1,10 +1,14 @@
 package EZShare.entities;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,14 +25,28 @@ public class Resource {
     private String ezserver;
     // resourceSize only appears in FETCH response.
     // The bytes of the file.
-    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     private long resourceSize;
+
+    @JsonCreator
+    public Resource() {
+        // Following fields cannot be null.
+        name = "";
+        tags = new ArrayList<>();
+        description = "";
+        uri = "";
+        channel = "";
+        owner = "";
+        // Following default to null or 0.
+        ezserver = null;
+        resourceSize = 0;
+    }
+
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(@NotNull String name) {
         this.name = name;
     }
 
@@ -36,7 +54,7 @@ public class Resource {
         return tags;
     }
 
-    public void setTags(List<String> tags) {
+    public void setTags(@NotNull List<String> tags) {
         this.tags = tags;
     }
 
@@ -44,7 +62,7 @@ public class Resource {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(@NotNull String description) {
         this.description = description;
     }
 
@@ -61,7 +79,7 @@ public class Resource {
         }
     }
 
-    public void setUri(String uri) {
+    public void setUri(@NotNull String uri) {
         this.uri = uri;
     }
 
@@ -69,7 +87,7 @@ public class Resource {
         return channel;
     }
 
-    public void setChannel(String channel) {
+    public void setChannel(@NotNull String channel) {
         this.channel = channel;
     }
 
@@ -77,10 +95,11 @@ public class Resource {
         return owner;
     }
 
-    public void setOwner(String owner) {
+    public void setOwner(@NotNull String owner) {
         this.owner = owner;
     }
 
+    @Nullable
     public String getEzserver() {
         return ezserver;
     }
@@ -89,6 +108,7 @@ public class Resource {
         this.ezserver = ezserver;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_DEFAULT)
     public long getResourceSize() {
         return resourceSize;
     }
