@@ -13,7 +13,16 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Client who connect and send command to server.
+ * Client who connect and send command to server. Other server connect to our
+ * is also treated as Client.
+ *
+ * This class parses command that sent from client and send back response to
+ * client. Actual command handing (lookup resource, update resource, etc.) is
+ * done on ClientCommandHandler other than this class itself.
+ *
+ * This class only do a little check on commands. ClientCommandHandler have to
+ * check whether a command is well-formatted and legal.
+ *
  * Created by xierch on 2017/3/23.
  */
 class Client implements Runnable {
@@ -22,15 +31,26 @@ class Client implements Runnable {
     final private EZInputOutput io;
     final private ClientCommandHandler commandHandler;
 
+    /**
+     * Create a Client.
+     * @param socket connected with the client.
+     * @param commandHandler to handle client's command.
+     * @throws IOException if fail on the socket. Will close by this class.
+     */
     Client(Socket socket, ClientCommandHandler commandHandler) throws IOException {
         io = new EZInputOutput(socket);
         this.commandHandler = commandHandler;
     }
 
-    void close() {
-        io.close();
-    }
-
+    /**
+     * Do everything with the client.
+     *
+     * This method will block until either command finished or error occurs.
+     * ClientCommandHandler may or (may not be, if error occurs) called on the
+     * same thread as one invoked this method.
+     *
+     * Client's socket will be closed before this method return.
+     */
     @Override
     public void run() {
         try {
@@ -38,10 +58,14 @@ class Client implements Runnable {
         } catch (IOException e) {
             LOGGER.warning("error on handle client " + io + ": " + e);
         } finally {
-            close();
+            io.close();
         }
     }
 
+    /**
+     * Just for run(), able to eliminate one block level of try.
+     * @throws IOException if error on I/O with client.
+     */
     private void handleCommand() throws IOException {
         Command command;
         try {
