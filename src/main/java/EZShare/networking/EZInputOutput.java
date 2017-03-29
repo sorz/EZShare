@@ -1,13 +1,13 @@
 package EZShare.networking;
 
-import EZShare.entities.Command;
-import EZShare.entities.Response;
+import EZShare.entities.*;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 
 /**
@@ -28,6 +28,14 @@ public class EZInputOutput {
         this.socket = socket;
         inputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
         outputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+    }
+
+    public EZInputOutput(String hostname, int port) throws IOException {
+        this(new Socket(hostname, port));
+    }
+
+    public EZInputOutput(Server server) throws IOException {
+        this(server.getHostname(), server.getPort());
     }
 
     public void close() {
@@ -89,6 +97,24 @@ public class EZInputOutput {
             sendJSON(value);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Read zero or more Resource object until ResultSize is read.
+     * @param consumer accept read Resource.
+     * @throws IOException error on reading or parsing.
+     */
+    public void readResources(Consumer<Resource> consumer) throws IOException {
+        int resourceCount = 0;
+        try {
+            consumer.accept(readJSON(Resource.class));
+            resourceCount ++;
+        } catch (JsonMappingException e) {
+            ResultSize resultSize = readJSON(ResultSize.class);
+            if (resultSize.get() != resourceCount)
+                LOGGER.warning(String.format("received %d result(s) but result size is %d",
+                        resourceCount, resultSize.get()));
         }
     }
 

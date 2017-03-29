@@ -94,17 +94,7 @@ public class ClientMain {
         List<Resource> resources = new ArrayList<>();
         if (!response.isSuccess())
             return Pair.of(response, resources);
-        while (true) {
-            try {
-                resources.add(io.readJSON(Resource.class));
-            } catch (JsonMappingException e) {
-                ResultSize resultSize = io.readJSON(ResultSize.class);
-                if (resultSize.get() != resources.size())
-                    LOGGER.warning(String.format("received %d result(s) but result size is %d",
-                            resources.size(), resultSize.get()));
-                break;
-            }
-        }
+        io.readResources(resources::add);
         return Pair.of(response, resources);
     }
 
