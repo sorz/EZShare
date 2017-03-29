@@ -3,9 +3,7 @@ package EZShare.server;
 import EZShare.entities.*;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
@@ -182,6 +180,35 @@ public class ServerDaemon implements ClientCommandHandler {
 
     @Override
     public Pair<Resource, InputStream> doFetch(Fetch cmd) throws CommandHandleException {
-        return null;
+        Resource template = cmd.getResourceTemplate();
+        if (template == null)
+            throw new CommandHandleException("missing resourceTemplate");
+        URI uri = template.getNormalizedUri();
+        if (uri == null || !"file".equals(uri.getScheme())) {
+            LOGGER.fine("URI illegal to fetch");
+            throw new CommandHandleException("invalid resourceTemplate");
+        }
+        Resource resource;
+        synchronized (resourceStorage) {
+            resource = resourceStorage.get(template.getChannel(), uri);
+        }
+        if (resource == null) {
+            LOGGER.fine("resource not found");
+            // TODO: can we throw "resource not found" instead?
+            throw new CommandHandleException("invalid resourceTemplate");
+        }
+        resource = copyAsAnonymousResource(resource);
+        InputStream inputStream;
+        try {
+            File file = new File(uri);
+            resource.setResourceSize(file.length());
+            inputStream = new BufferedInputStream(new FileInputStream(file));
+        } catch (FileNotFoundException e) {
+            LOGGER.warning(String.format("resource (%s, %s) file not found",
+                    template.getChannel(), uri));
+            // TODO: can we throw "file not found" instead?
+            throw new CommandHandleException("invalid resourceTemplate");
+        }
+        return Pair.of(resource, inputStream);
     }
 }
