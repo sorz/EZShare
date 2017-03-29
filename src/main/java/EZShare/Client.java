@@ -3,8 +3,8 @@ package EZShare;
 import EZShare.client.ClientMain;
 import EZShare.client.ClientOptions;
 import EZShare.entities.Command;
-import javafx.util.Pair;
 import org.apache.commons.cli.*;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.net.URI;
@@ -14,8 +14,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import static EZShare.entities.Command.CMD.FETCH;
 
 /**
  * Entrance of client program.
@@ -131,7 +129,7 @@ public class Client extends CLILauncher<ClientOptions> {
                     if ((portNo & ~0xffff) != 0)
                         throw new ParseException("port number must within 0 to 65535.");
                 }
-                servers.add(new Pair<>(host, portNo));
+                servers.add(Pair.of(host, portNo));
             }
             options.setServers(servers);
         }

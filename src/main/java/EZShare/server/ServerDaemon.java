@@ -39,8 +39,20 @@ public class ServerDaemon implements ClientCommandHandler {
 
     public void runForever() throws IOException {
         LOGGER.info("server is running");
+        long lastAcceptTimeMillis = - options.getExchangeInterval() * 1000;
         while (isRunning) {
             Socket socket = serverSocket.accept();
+            if (System.currentTimeMillis() - lastAcceptTimeMillis <
+                    options.getExchangeInterval() * 1000) {
+                LOGGER.info("reject connection from " + socket.getInetAddress());
+                try {
+                    socket.close();
+                } catch (IOException e) {
+                    // Ignore
+                }
+                continue;
+            }
+            lastAcceptTimeMillis = System.currentTimeMillis();
             LOGGER.info("accept connection from " + socket.getInetAddress());
             try {
                 Client client = new Client(socket, this);
