@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="ezshare:jar">
-    <output-path>$PROJECT_DIR$/out/artifacts/ezshare_jar</output-path>
-    <root id="archive" name="ezshare.jar">
-      <element id="module-output" name="ezshare" />
-    </root>
-  </artifact>
-</component>

@@ -38,7 +38,7 @@ public class Server extends CLILauncher<ServerOptions> {
             return -2;
         }
         try {
-            server.runForever();
+            server.serveForever();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE,"error on running server: " + e);
         } finally {

@@ -31,13 +31,22 @@ public class ServerDaemon implements ClientCommandHandler {
         this.options = options;
     }
 
+    /**
+     * Bind to port.
+     * @throws IOException if failed to bind the port.
+     */
     public void start() throws IOException {
         LOGGER.info("bind on port " + options.getPort());
         serverSocket = new ServerSocket(options.getPort());
         isRunning = true;
     }
 
-    public void runForever() throws IOException {
+    /**
+     * Never return unless stop() be invoke or exceptions throw.
+     * Must invoke after start().
+     * @throws IOException if error on accept socket.
+     */
+    public void serveForever() throws IOException {
         LOGGER.info("server is running");
         long lastAcceptTimeMillis = - options.getExchangeInterval() * 1000;
         while (isRunning) {
