@@ -77,22 +77,31 @@ public class ClientMain {
                 return;
 
             if (options.getCommand() == Command.CMD.QUERY) {
-                // TODO: better format of output
-                client.readResources(System.out::println);
+                int size = client.readResources(System.out::println);
+                if (size == 0)
+                    System.out.println("No resource found.");
+                else
+                    System.out.printf("%s resource(s) found in total.", size);
             } else if (options.getCommand() == Command.CMD.FETCH) {
                 Resource resource = client.readResource();
-                // TODO: better format of output
                 System.out.println(resource);
-                // Try to derive a filename from URI and resource name,
-                // if failed, get a temp file path.
+                // Try to derive a filename from URI or resource name.
                 String filename = getFilenameFromURI(resource.getUri());
-                if (filename.isEmpty())
-                    filename = resource.getName();
+                if (filename.isEmpty()) {
+                    filename = resource.getName().isEmpty() ? "unnamed" : resource.getName();
+                    filename = "ezfile-" + filename + ".bin";
+                }
+                // Replace all "..", "\" and "/" to "_".
                 filename = filename.replaceAll("(\\\\|\\.\\.|/)", "_");
-                Path path = new File(filename).toPath();
-                if (!Files.isWritable(path)|| Files.exists(path))
-                    path = Files.createTempFile("ezshare-", ".bin");
-                client.readToFile(path, resource.getResourceSize());
+                Path path = new File(filename).getAbsoluteFile().toPath();
+                // Save to temp dir if current dir cannot write or file already exists.
+                if (!Files.isWritable(path.getParent()) || Files.exists(path)) {
+                    String dir = Files.createTempDirectory("ezshare-").toString();
+                    path = new File(dir, filename).toPath();
+                }
+                System.out.printf("Saving file to %s ...\n", path);
+                long size = client.readToFile(path, resource.getResourceSize());
+                System.out.printf("%,d bytes received, done.\n", size);
             }
         } finally {
             client.close();
@@ -104,26 +113,27 @@ public class ClientMain {
         return io.readResponse();
     }
 
-    private void readResources(Consumer<Resource> consumer) throws IOException {
-        io.readResources(consumer);
+    private int readResources(Consumer<Resource> consumer) throws IOException {
+        return io.readResources(consumer);
     }
 
     private Resource readResource() throws IOException {
         return io.readJSON(Resource.class);
     }
 
-    private void readToFile(Path path, long size) throws IOException {
+    private long readToFile(Path path, long size) throws IOException {
         OutputStream output = Files.newOutputStream(path);
-        io.readBinaryTo(output, size);
+        long received = io.readBinaryTo(output, size);
         output.flush();
         output.close();
+        return received;
     }
 
     private static String getFilenameFromURI(String uri) {
         int index = uri.lastIndexOf('/');
         if (index == -1)
             return "";
-        return uri.substring(index);
+        return uri.substring(index + 1);
     }
 
     private void close() {

@@ -8,6 +8,7 @@ import com.sun.istack.internal.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +17,10 @@ import java.util.List;
  * Created by xierch on 2017/3/22.
  */
 public class Resource {
+    private static final String[] SIZE_UNITS =
+            new String[] { "Bytes", "KiB", "MiB", "GiB", "TiB" };
+
+
     private String name;
     private List<String> tags;
     private String description;
@@ -141,6 +146,18 @@ public class Resource {
         return this;
     }
 
+    @NotNull
+    @JsonIgnore
+    public String getReadableResourceSize() {
+        // Reference:
+        // https://stackoverflow.com/questions/3263892/format-file-size-as-mb-gb-etc
+        if (getResourceSize() <= 0)
+            return "0";
+        int digitGroups = (int) (Math.log10(getResourceSize()) / Math.log10(1024));
+        return new DecimalFormat("#,##0.#").format(getResourceSize() / Math.pow(1024, digitGroups))
+                + " " + SIZE_UNITS[digitGroups];
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
@@ -159,6 +176,8 @@ public class Resource {
             builder.delete(builder.length() - 2, builder.length());
             builder.append("\n");
         }
+        if (getResourceSize() != 0)
+            builder.append(String.format("| Size: %s\n", getReadableResourceSize()));
         if (!getDescription().isEmpty())
             builder.append(String.format("| %s\n", getDescription()));
         return builder.toString();

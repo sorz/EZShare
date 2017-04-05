@@ -102,7 +102,7 @@ public class EZInputOutput {
      * @param consumer accept read Resource.
      * @throws IOException error on reading or parsing.
      */
-    public void readResources(Consumer<Resource> consumer) throws IOException {
+    public int readResources(Consumer<Resource> consumer) throws IOException {
         int resourceCount = 0;
         try {
             //noinspection InfiniteLoopStatement
@@ -116,6 +116,7 @@ public class EZInputOutput {
                 LOGGER.warning(String.format("received %d result(s) but result size is %d",
                         resourceCount, resultSize.get()));
         }
+        return resourceCount;
     }
 
     public long readBinaryTo(OutputStream outputStream, long totalSize) throws IOException {
