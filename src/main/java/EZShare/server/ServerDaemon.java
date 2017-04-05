@@ -88,8 +88,8 @@ public class ServerDaemon implements ClientCommandHandler {
         Resource newResource = new Resource(resource);
         newResource.setEzserver(String.format("%s:%d",
                 options.getHostname(), options.getPort()));
-        if (!resource.getName().isEmpty())
-            newResource.setName("*");
+        if (!resource.getOwner().isEmpty())
+            newResource.setOwner("*");
         return newResource;
     }
 

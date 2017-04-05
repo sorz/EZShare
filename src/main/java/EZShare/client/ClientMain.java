@@ -81,7 +81,7 @@ public class ClientMain {
                 if (size == 0)
                     System.out.println("No resource found.");
                 else
-                    System.out.printf("%s resource(s) found in total.", size);
+                    System.out.printf("%s resource(s) found in total.\n", size);
             } else if (options.getCommand() == Command.CMD.FETCH) {
                 Resource resource = client.readResource();
                 System.out.println(resource);
