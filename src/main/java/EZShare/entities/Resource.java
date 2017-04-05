@@ -56,15 +56,19 @@ public class Resource {
         this.resourceSize = resource.getResourceSize();
     }
 
+    @NotNull
     public String getName() {
-        return name;
+        return name == null ? "" : name;
     }
 
     public void setName(@NotNull String name) {
         this.name = name;
     }
 
+    @NotNull
     public List<String> getTags() {
+        if (tags == null)
+            tags = new ArrayList<>();
         return tags;
     }
 
@@ -72,18 +76,21 @@ public class Resource {
         this.tags = tags;
     }
 
+    @NotNull
     public String getDescription() {
-        return description;
+        return description == null ? "" : description;
     }
 
     public void setDescription(@NotNull String description) {
         this.description = description;
     }
 
+    @NotNull
     public String getUri() {
-        return uri;
+        return uri == null ? "" : uri;
     }
 
+    @Nullable
     @JsonIgnore
     public URI getNormalizedUri() {
         try {
@@ -97,16 +104,18 @@ public class Resource {
         this.uri = uri;
     }
 
+    @NotNull
     public String getChannel() {
-        return channel;
+        return channel == null ? "" : channel;
     }
 
     public void setChannel(@NotNull String channel) {
         this.channel = channel;
     }
 
+    @NotNull
     public String getOwner() {
-        return owner;
+        return owner == null ? "" : owner;
     }
 
     public void setOwner(@NotNull String owner) {
@@ -130,5 +139,28 @@ public class Resource {
     public Resource setResourceSize(long resourceSize) {
         this.resourceSize = resourceSize;
         return this;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(String.format("Resource [%s]\n",
+                getName().isEmpty() ? "UNNAMED" : getName()));
+        builder.append(String.format("| URI: %s\n", getUri()));
+        if (!getChannel().isEmpty())
+            builder.append(String.format("| Channel: %s\n", getChannel()));
+        if (!getOwner().isEmpty())
+            builder.append(String.format("| Owner: %s\n", getOwner()));
+        if (getEzserver() != null && !getEzserver().isEmpty())
+            builder.append(String.format("| Server: %s\n", getEzserver()));
+        if (!getTags().isEmpty()) {
+            builder.append("| Tags: ");
+            getTags().stream().map(t -> t + ", ").forEach(builder::append);
+            builder.delete(builder.length() - 2, builder.length());
+            builder.append("\n");
+        }
+        if (!getDescription().isEmpty())
+            builder.append(String.format("| %s\n", getDescription()));
+        return builder.toString();
     }
 }
