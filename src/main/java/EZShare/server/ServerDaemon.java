@@ -1,6 +1,7 @@
 package EZShare.server;
 
 import EZShare.entities.*;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.*;
@@ -51,17 +52,13 @@ public class ServerDaemon implements ClientCommandHandler {
      */
     public void serveForever() throws IOException {
         LOGGER.info("server is running");
-        long lastAcceptTimeMillis = - options.getExchangeInterval() * 1000;
+        long lastAcceptTimeMillis = (long) (- options.getConnectionIntervalLimit() * 1000);
         while (isRunning) {
             Socket socket = serverSocket.accept();
             if (System.currentTimeMillis() - lastAcceptTimeMillis <
-                    options.getExchangeInterval() * 1000) {
+                    options.getConnectionIntervalLimit() * 1000) {
                 LOGGER.info("reject connection from " + socket.getInetAddress());
-                try {
-                    socket.close();
-                } catch (IOException e) {
-                    // Ignore
-                }
+                IOUtils.closeQuietly(socket);
                 continue;
             }
             lastAcceptTimeMillis = System.currentTimeMillis();
@@ -79,11 +76,7 @@ public class ServerDaemon implements ClientCommandHandler {
         LOGGER.info("stopping");
         isRunning = false;
         interServerService.stop();
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            // ignore
-        }
+        IOUtils.closeQuietly(serverSocket);
     }
 
     /**
