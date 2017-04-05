@@ -3,6 +3,7 @@ package EZShare.entities;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.sun.istack.internal.NotNull;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 /**
@@ -21,8 +22,9 @@ public class Server {
         this.port = port;
     }
 
+    @NotNull
     public String getHostname() {
-        return hostname;
+        return hostname == null ? "" : hostname;
     }
 
     public int getPort() {
@@ -46,7 +48,7 @@ public class Server {
 
     @JsonIgnore
     public boolean isValid() {
-        return !hostname.isEmpty() && (getPort() & ~0xffff) != 0 && getPort() > 0;
+        return !getHostname().isEmpty() && (getPort() & ~0xffff) == 0 && getPort() > 0;
     }
 
     @Override

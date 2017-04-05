@@ -108,6 +108,7 @@ class Client implements Runnable {
                     break;
                 case EXCHANGE:
                     commandHandler.doExchange((Exchange) command);
+                    io.sendJSON(Response.createSuccess());
                     break;
             }
         } catch (CommandHandleException e) {
