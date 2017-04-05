@@ -105,8 +105,11 @@ public class EZInputOutput {
     public void readResources(Consumer<Resource> consumer) throws IOException {
         int resourceCount = 0;
         try {
-            consumer.accept(readJSON(Resource.class));
-            resourceCount ++;
+            //noinspection InfiniteLoopStatement
+            while (true) {
+                consumer.accept(readJSON(Resource.class));
+                resourceCount++;
+            }
         } catch (JsonMappingException e) {
             ResultSize resultSize = readJSON(ResultSize.class);
             if (resultSize.get() != resourceCount)
