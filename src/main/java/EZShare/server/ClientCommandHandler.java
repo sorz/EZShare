@@ -16,4 +16,5 @@ public interface ClientCommandHandler {
     void doShare(Share cmd) throws CommandHandleException;
     List<Resource> doQuery(Query cmd) throws CommandHandleException;
     Pair<Resource, InputStream> doFetch(Fetch cmd) throws CommandHandleException;
+    void doExchange(Exchange cmd) throws CommandHandleException;
 }

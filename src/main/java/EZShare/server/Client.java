@@ -107,7 +107,7 @@ class Client implements Runnable {
                     io.sendJSON(new ResultSize(1));
                     break;
                 case EXCHANGE:
-                    // TODO
+                    commandHandler.doExchange((Exchange) command);
                     break;
             }
         } catch (CommandHandleException e) {

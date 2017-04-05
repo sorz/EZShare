@@ -11,7 +11,7 @@ import java.util.List;
  *
  * Created by xierch on 2017/3/29.
  */
-public class Exchange {
+public class Exchange extends Command {
     private final List<Server> serverList;
 
     @JsonCreator
@@ -30,5 +30,10 @@ public class Exchange {
         builder.delete(builder.length() - 1, builder.length());
         builder.append("}");
         return builder.toString();
+    }
+
+    @Override
+    public CMD getCMD() {
+        return CMD.EXCHANGE;
     }
 }

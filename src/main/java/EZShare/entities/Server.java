@@ -1,6 +1,7 @@
 package EZShare.entities;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -41,6 +42,11 @@ public class Server {
                 .append(getHostname())
                 .append(getPort())
                 .toHashCode();
+    }
+
+    @JsonIgnore
+    public boolean isValid() {
+        return !hostname.isEmpty() && (getPort() & ~0xffff) != 0 && getPort() > 0;
     }
 
     @Override

@@ -22,6 +22,7 @@ public class ServerDaemon implements ClientCommandHandler {
 
     private final ServerOptions options;
     private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final InterServerService interServerService;
     private final ResourceStorage resourceStorage = new MemoryResourceStorage();
     private ServerSocket serverSocket;
     private boolean isRunning;
@@ -29,6 +30,7 @@ public class ServerDaemon implements ClientCommandHandler {
 
     public ServerDaemon(ServerOptions options) {
         this.options = options;
+        interServerService = new InterServerService(options.getExchangeInterval());
     }
 
     /**
@@ -39,6 +41,7 @@ public class ServerDaemon implements ClientCommandHandler {
         LOGGER.info("bind on port " + options.getPort());
         serverSocket = new ServerSocket(options.getPort());
         isRunning = true;
+        executorService.submit(interServerService);
     }
 
     /**
@@ -75,6 +78,7 @@ public class ServerDaemon implements ClientCommandHandler {
     public void stop() {
         LOGGER.info("stopping");
         isRunning = false;
+        interServerService.stop();
         try {
             serverSocket.close();
         } catch (IOException e) {
@@ -231,5 +235,14 @@ public class ServerDaemon implements ClientCommandHandler {
             throw new CommandHandleException("invalid resourceTemplate");
         }
         return Pair.of(resource, inputStream);
+    }
+
+    @Override
+    public void doExchange(Exchange cmd) throws CommandHandleException {
+        if (cmd.getServerList() == null || cmd.getServerList().isEmpty())
+            throw new CommandHandleException("missing or invalid server list");
+        if (!cmd.getServerList().stream().allMatch(Server::isValid))
+            throw new CommandHandleException("invalid server record found");
+        interServerService.addServers(cmd.getServerList());
     }
 }
