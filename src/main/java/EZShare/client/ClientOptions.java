@@ -131,4 +131,8 @@ public class ClientOptions {
     public URI getUri() {
         return uri;
     }
+
+    public String getUriString() {
+        return getUri() == null ? "" : getUri().toString();
+    }
 }

@@ -135,7 +135,9 @@ public class Client extends CLILauncher<ClientOptions> {
         }
 
         List<String> tags = Arrays.stream(line.getOptionValue("tags", "").split(","))
-                .map(String::trim).collect(Collectors.toList());
+                .map(String::trim)
+                .filter(t -> !t.isEmpty())
+                .collect(Collectors.toList());
         options.setTags(tags);
 
         if (line.hasOption("uri")) {

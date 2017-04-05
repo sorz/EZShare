@@ -49,7 +49,7 @@ public class ClientMain {
                 resource.setName(options.getName());
                 resource.setOwner(options.getOwner());
                 resource.setTags(options.getTags());
-                resource.setUri(options.getUri().toString());
+                resource.setUri(options.getUriString());
                 switch (options.getCommand()) {
                     case PUBLISH:
                         cmdToSend = new Publish(resource);
