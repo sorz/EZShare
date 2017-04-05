@@ -2,8 +2,6 @@ package EZShare.server;
 
 import EZShare.entities.*;
 import EZShare.networking.EZInputOutput;
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 
 import java.io.IOException;
 import java.util.*;
@@ -82,7 +80,6 @@ public class InterServerService implements Runnable {
      * Randomly choose a server from servers.
      * @return a server or null if servers is empty.
      */
-    @Nullable
     private Server getRandomServer() {
         synchronized (servers) {
             return servers.stream()
@@ -114,7 +111,7 @@ public class InterServerService implements Runnable {
      * Add servers to the internal remote server list.
      * @param servers to add. Already exist server will be silently ignored.
      */
-    public void addServers(@NotNull Collection<Server> servers) {
+    public void addServers(Collection<Server> servers) {
         synchronized (this.servers) {
             if (this.servers.addAll(servers))
                 LOGGER.info("server list updated");
@@ -132,7 +129,7 @@ public class InterServerService implements Runnable {
      * @param query to send.
      * @param consumer accept query result.
      */
-    public void queryAll(@NotNull Query query, Consumer<Resource> consumer) {
+    public void queryAll(Query query, Consumer<Resource> consumer) {
         CountDownLatch countDownLatch;
         synchronized (servers) {
             countDownLatch = new CountDownLatch(servers.size());
@@ -157,7 +154,7 @@ public class InterServerService implements Runnable {
         }
     }
 
-    private void query(@NotNull Query query, @NotNull Server server,
+    private void query(Query query, Server server,
                        Consumer<Resource> consumer)
             throws IOException {
         EZInputOutput io = new EZInputOutput(server);

@@ -3,8 +3,6 @@ package EZShare.entities;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.sun.istack.internal.NotNull;
-import com.sun.istack.internal.Nullable;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -61,41 +59,36 @@ public class Resource {
         this.resourceSize = resource.getResourceSize();
     }
 
-    @NotNull
     public String getName() {
         return name == null ? "" : name;
     }
 
-    public void setName(@NotNull String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
-    @NotNull
     public List<String> getTags() {
         if (tags == null)
             tags = new ArrayList<>();
         return tags;
     }
 
-    public void setTags(@NotNull List<String> tags) {
+    public void setTags(List<String> tags) {
         this.tags = tags;
     }
 
-    @NotNull
     public String getDescription() {
         return description == null ? "" : description;
     }
 
-    public void setDescription(@NotNull String description) {
+    public void setDescription(String description) {
         this.description = description;
     }
 
-    @NotNull
     public String getUri() {
         return uri == null ? "" : uri;
     }
 
-    @Nullable
     @JsonIgnore
     public URI getNormalizedUri() {
         try {
@@ -105,29 +98,26 @@ public class Resource {
         }
     }
 
-    public void setUri(@NotNull String uri) {
+    public void setUri(String uri) {
         this.uri = uri;
     }
 
-    @NotNull
     public String getChannel() {
         return channel == null ? "" : channel;
     }
 
-    public void setChannel(@NotNull String channel) {
+    public void setChannel(String channel) {
         this.channel = channel;
     }
 
-    @NotNull
     public String getOwner() {
         return owner == null ? "" : owner;
     }
 
-    public void setOwner(@NotNull String owner) {
+    public void setOwner(String owner) {
         this.owner = owner;
     }
 
-    @Nullable
     public String getEzserver() {
         return ezserver;
     }
@@ -146,7 +136,6 @@ public class Resource {
         return this;
     }
 
-    @NotNull
     @JsonIgnore
     public String getReadableResourceSize() {
         // Reference:
