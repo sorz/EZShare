@@ -11,6 +11,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -183,17 +184,22 @@ public class ServerDaemon implements ClientCommandHandler {
     }
 
     @Override
-    public List<Resource> doQuery(Query cmd) throws CommandHandleException {
+    public int doQuery(Query cmd, Consumer<Void> ok, Consumer<Resource> consumer)
+            throws CommandHandleException {
         Resource template = cmd.getResourceTemplate();
         if (template == null)
             throw new CommandHandleException("missing resourceTemplate");
         if (template.getNormalizedUri() != null)
             template.setUri(template.getNormalizedUri().toString());
+        ok.accept(null);
+        Counter<Resource> counter = new Counter<>();
         synchronized (resourceStorage) {
-            return resourceStorage.templateQuery(template)
+            resourceStorage.templateQuery(template)
                     .map(this::copyAsAnonymousResource)
-                    .collect(Collectors.toList());
+                    .map(counter::count)
+                    .forEach(consumer);
         }
+        return counter.num;
     }
 
     @Override
@@ -237,5 +243,13 @@ public class ServerDaemon implements ClientCommandHandler {
         if (!cmd.getServerList().stream().allMatch(Server::isValid))
             throw new CommandHandleException("invalid server record found");
         interServerService.addServers(cmd.getServerList());
+    }
+
+    private static class Counter<T> {
+        int num;
+        T count(T obj) {
+            num ++;
+            return obj;
+        }
     }
 }

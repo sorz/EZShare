@@ -94,10 +94,10 @@ class Client implements Runnable {
                     io.sendJSON(Response.createSuccess());
                     break;
                 case QUERY:
-                    List<Resource> resources = commandHandler.doQuery((Query) command);
-                    io.sendJSON(Response.createSuccess());
-                    resources.forEach(io::uncheckedSendJSON);
-                    io.sendJSON(new ResultSize(resources.size()));
+                    int size = commandHandler.doQuery((Query) command,
+                            v -> io.uncheckedSendJSON(Response.createSuccess()),
+                            io::uncheckedSendJSON);
+                    io.sendJSON(new ResultSize(size));
                     break;
                 case FETCH:
                     Pair<Resource, InputStream> resInput = commandHandler.doFetch((Fetch) command);
