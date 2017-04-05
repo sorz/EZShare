@@ -8,12 +8,10 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 /**
  * Main class for server.
@@ -191,8 +189,15 @@ public class ServerDaemon implements ClientCommandHandler {
             throw new CommandHandleException("missing resourceTemplate");
         if (template.getNormalizedUri() != null)
             template.setUri(template.getNormalizedUri().toString());
+        // Tell caller the command is valid and we are ready to send resources.
         ok.accept(null);
+
         Counter<Resource> counter = new Counter<>();
+        if (cmd.isRelay())
+            interServerService.queryAll(cmd, r -> {
+                counter.count(r);
+                consumer.accept(r);
+            });
         synchronized (resourceStorage) {
             resourceStorage.templateQuery(template)
                     .map(this::copyAsAnonymousResource)
@@ -247,8 +252,8 @@ public class ServerDaemon implements ClientCommandHandler {
 
     private static class Counter<T> {
         int num;
-        T count(T obj) {
-            num ++;
+        synchronized T count(T obj) {
+                num++;
             return obj;
         }
     }

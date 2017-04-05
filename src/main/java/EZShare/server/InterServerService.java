@@ -130,25 +130,16 @@ public class InterServerService implements Runnable {
      * Multi-threading is taken to make query in parallel.
      *
      * @param query to send.
-     * @return An BlockingQueue immediately, resources returned by server will
-     * put in that queue.
+     * @param consumer accept query result.
      */
-    public BlockingQueue<Resource> queryAll(@NotNull Query query) {
-        Thread consumerThread = Thread.currentThread();
-        BlockingQueue<Resource> queue = new LinkedBlockingDeque<>();
-
+    public void queryAll(@NotNull Query query, Consumer<Resource> consumer) {
         CountDownLatch countDownLatch;
         synchronized (servers) {
             countDownLatch = new CountDownLatch(servers.size());
+            // Following code run in thread pool.
             servers.forEach(server -> executorService.submit(() -> {
                 try {
-                    query(query, server, res -> {
-                        try {
-                            queue.put(res);
-                        } catch (InterruptedException e) {
-                            LOGGER.fine("interrupted, stop to put resource");
-                        }
-                    });
+                    query(query, server, consumer);
                 } catch (IOException e) {
                     LOGGER.fine("fail to query with " + server);
                     // TODO: should we remove that server?
@@ -156,15 +147,14 @@ public class InterServerService implements Runnable {
                     countDownLatch.countDown();
                 }
             }));
-            try {
-                // TODO: add timeout here?
-                countDownLatch.await();
-            } catch (InterruptedException e) {
-                LOGGER.fine("interrupted on countDownLatch");
-            }
-            consumerThread.interrupt();
+            // End of thread pool code.
         }
-        return queue;
+
+        try {
+            countDownLatch.await();
+        } catch (InterruptedException e) {
+            LOGGER.fine("interrupted on countDownLatch");
+        }
     }
 
     private void query(@NotNull Query query, @NotNull Server server,
