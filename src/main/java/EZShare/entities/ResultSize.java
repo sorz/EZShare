@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class ResultSize {
     private final int resultSize;
 
+    @JsonProperty("resultSize")
     public int get() {
         return resultSize;
     }
