@@ -4,6 +4,7 @@ import EZShare.entities.*;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.net.Socket;
@@ -39,11 +40,7 @@ public class EZInputOutput {
     }
 
     public void close() {
-        try {
-            getSocket().close();
-        } catch (IOException e) {
-            // ignore
-        }
+        IOUtils.closeQuietly(getSocket());
     }
 
     /**
@@ -118,6 +115,9 @@ public class EZInputOutput {
         }
     }
 
+    public long readBinaryTo(OutputStream outputStream, long totalSize) throws IOException {
+        return IOUtils.copyLarge(getInputStream(), outputStream, 0, totalSize);
+    }
 
 
     public Socket getSocket() {

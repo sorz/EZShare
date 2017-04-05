@@ -2,14 +2,17 @@ package EZShare.client;
 
 import EZShare.entities.*;
 import EZShare.networking.EZInputOutput;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import org.apache.commons.lang3.tuple.Pair;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Main class for EZShare client.
@@ -31,8 +34,14 @@ public class ClientMain {
                 options.getHost(), options.getPort()));
         ClientMain client = new ClientMain(options.getHost(), options.getPort());
         try {
+            Command cmdToSend;
             if (Command.CMD.EXCHANGE == options.getCommand()) {
-                client.exchange(options.getServers());
+                // The only command that have no resource/template.
+                List<Server> servers = options.getServers()
+                        .stream()
+                        .map(pair -> new Server(pair.getLeft(), pair.getRight()))
+                        .collect(Collectors.toList());
+                cmdToSend = new Exchange(servers);
             } else {
                 Resource resource = new Resource();
                 resource.setChannel(options.getChannel());
@@ -43,63 +52,78 @@ public class ClientMain {
                 resource.setUri(options.getUri().toString());
                 switch (options.getCommand()) {
                     case PUBLISH:
-                        System.out.println(client.publish(resource));
+                        cmdToSend = new Publish(resource);
                         break;
                     case REMOVE:
-                        System.out.println(client.remove(resource));
+                        cmdToSend = new Remove(resource);
                         break;
                     case SHARE:
-                        System.out.println(client.share(resource, options.getSecret()));
+                        cmdToSend = new Share(resource, options.getSecret());
                         break;
                     case QUERY:
-                        Pair<Response, List<Resource>> responseResources = client.query(resource);
-                        System.out.println(responseResources.getLeft());
-                        responseResources.getRight().forEach(System.out::println);
+                        cmdToSend = new Query(resource, true);
                         break;
                     case FETCH:
-                        break;
-                    case EXCHANGE:
+                        cmdToSend = new Fetch(resource);
                         break;
                     default:
-                        break;
+                        throw new IllegalStateException("Unknown command");
                 }
             }
+            Response response = client.sendCommand(cmdToSend);
+            // TODO: better format of output
+            System.out.println(response);
+            if (!response.isSuccess())
+                return;
 
-
+            if (options.getCommand() == Command.CMD.QUERY) {
+                // TODO: better format of output
+                client.readResources(System.out::println);
+            } else if (options.getCommand() == Command.CMD.FETCH) {
+                Resource resource = client.readResource();
+                // TODO: better format of output
+                System.out.println(resource);
+                // Try to derive a filename from URI and resource name,
+                // if failed, get a temp file path.
+                String filename = getFilenameFromURI(resource.getUri());
+                if (filename.isEmpty())
+                    filename = resource.getName();
+                filename = filename.replaceAll("(\\\\|\\.\\.|/)", "_");
+                Path path = new File(filename).toPath();
+                if (!Files.isWritable(path)|| Files.exists(path))
+                    path = Files.createTempFile("ezshare-", ".bin");
+                client.readToFile(path, resource.getResourceSize());
+            }
         } finally {
             client.close();
         }
-
-
     }
 
-    private Response publish(Resource resource) throws IOException {
-        io.sendJSON(new Publish(resource));
+    private Response sendCommand(Command command) throws IOException {
+        io.sendJSON(command);
         return io.readResponse();
     }
 
-    private Response remove(Resource resource) throws IOException {
-        io.sendJSON(new Remove(resource));
-        return io.readResponse();
+    private void readResources(Consumer<Resource> consumer) throws IOException {
+        io.readResources(consumer);
     }
 
-    private Response share(Resource resource, String secret) throws IOException {
-        io.sendJSON(new Share(resource, secret));
-        return io.readResponse();
+    private Resource readResource() throws IOException {
+        return io.readJSON(Resource.class);
     }
 
-    private Pair<Response, List<Resource>> query(Resource template) throws IOException {
-        io.sendJSON(new Query(template, false));
-        Response response = io.readResponse();
-        List<Resource> resources = new ArrayList<>();
-        if (!response.isSuccess())
-            return Pair.of(response, resources);
-        io.readResources(resources::add);
-        return Pair.of(response, resources);
+    private void readToFile(Path path, long size) throws IOException {
+        OutputStream output = Files.newOutputStream(path);
+        io.readBinaryTo(output, size);
+        output.flush();
+        output.close();
     }
 
-    private Response exchange(List<Pair<String, Integer>> servers) {
-        return null;
+    private static String getFilenameFromURI(String uri) {
+        int index = uri.lastIndexOf('/');
+        if (index == -1)
+            return "";
+        return uri.substring(index);
     }
 
     private void close() {
