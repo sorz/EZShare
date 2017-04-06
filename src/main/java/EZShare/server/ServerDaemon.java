@@ -30,7 +30,9 @@ public class ServerDaemon implements ClientCommandHandler {
 
     public ServerDaemon(ServerOptions options) {
         this.options = options;
-        interServerService = new InterServerService(options.getExchangeInterval());
+        interServerService = new InterServerService(
+                options.getHostname(), options.getPort(),
+                options.getExchangeInterval());
     }
 
     /**

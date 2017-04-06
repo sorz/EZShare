@@ -28,7 +28,8 @@ public class InterServerService implements Runnable {
     // We may not want server start too many threads on user's query request.
     private final static int MAX_QUERY_THREAD = 32;
 
-    final private Set<Server> servers = new HashSet<>();
+    private final Set<Server> servers = new HashSet<>();
+    private final Server localServer;
     private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_QUERY_THREAD);
 
     private long exchangeIntervalMillis;
@@ -41,7 +42,8 @@ public class InterServerService implements Runnable {
      *                               an EXCHANGE command to random server on
      *                               the list.
      */
-    public InterServerService(long exchangeIntervalMillis) {
+    InterServerService(String hostname, int port, long exchangeIntervalMillis) {
+        localServer = new Server(hostname, port);
         this.exchangeIntervalMillis = exchangeIntervalMillis;
     }
 
@@ -97,7 +99,10 @@ public class InterServerService implements Runnable {
         EZInputOutput io = new EZInputOutput(server);
         Exchange exchange;
         synchronized (servers) {
-            exchange = new Exchange(new ArrayList<>(servers));
+            List<Server> serverList = new ArrayList<>(servers.size() + 1);
+            serverList.add(localServer);
+            serverList.addAll(servers);
+            exchange = new Exchange(serverList);
         }
         io.sendJSON(exchange);
         Response response = io.readResponse();
@@ -112,8 +117,10 @@ public class InterServerService implements Runnable {
      * @param servers to add. Already exist server will be silently ignored.
      */
     public void addServers(Collection<Server> servers) {
+        Set<Server> serverSet = new HashSet<>(servers);
+        serverSet.remove(localServer);
         synchronized (this.servers) {
-            if (this.servers.addAll(servers))
+            if (this.servers.addAll(serverSet))
                 LOGGER.info("server list updated");
             else
                 LOGGER.fine("server list kept no changed");
