@@ -54,6 +54,7 @@ public class InterServerService implements Runnable {
      */
     @Override
     public void run() {
+        isRunning = true;
         while (isRunning) {
             try {
                 Thread.sleep(exchangeIntervalMillis);
