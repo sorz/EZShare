@@ -117,7 +117,7 @@ public class InterServerService implements Runnable {
      * Add servers to the internal remote server list.
      * @param servers to add. Already exist server will be silently ignored.
      */
-    public void addServers(Collection<Server> servers) {
+    void addServers(Collection<Server> servers) {
         Set<Server> serverSet = new HashSet<>(servers);
         serverSet.remove(localServer);
         synchronized (this.servers) {
@@ -137,14 +137,15 @@ public class InterServerService implements Runnable {
      * @param query to send.
      * @param consumer accept query result.
      */
-    public void queryAll(Query query, Consumer<Resource> consumer) {
+    void queryAll(Query query, Consumer<Resource> consumer) {
         CountDownLatch countDownLatch;
+        Query queryNoRelay = new Query(query, false);
         synchronized (servers) {
             countDownLatch = new CountDownLatch(servers.size());
             // Following code run in thread pool.
             servers.forEach(server -> executorService.submit(() -> {
                 try {
-                    query(query, server, consumer);
+                    query(queryNoRelay, server, consumer);
                 } catch (IOException e) {
                     LOGGER.fine("fail to query with " + server);
                     // TODO: should we remove that server?
@@ -175,7 +176,7 @@ public class InterServerService implements Runnable {
         io.readResources(consumer);
     }
 
-    public void stop() {
+    void stop() {
         isRunning = false;
     }
 }

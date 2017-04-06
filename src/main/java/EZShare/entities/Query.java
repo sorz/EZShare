@@ -21,6 +21,15 @@ public class Query extends CommandWithResourceTemplate {
         this.relay = relay;
     }
 
+    /**
+     * Clone a query.
+     * @param query to clone.
+     * @param relay override relay from query.
+     */
+    public Query(Query query, boolean relay) {
+        this(new Resource(query.getResourceTemplate()), relay);
+    }
+
     @Override
     public CMD getCMD() {
         return CMD.QUERY;
