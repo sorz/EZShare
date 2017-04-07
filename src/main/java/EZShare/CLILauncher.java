@@ -47,7 +47,7 @@ abstract class CLILauncher<T> {
             settings = parseCommandLine(line);
         } catch (ParseException e) {
             System.err.println("Failed to parse CLI arguments.\n" + e);
-            printUsage();
+            System.err.println("Run with -help to show usage. ");
             return 1;
         }
         return run(settings);
