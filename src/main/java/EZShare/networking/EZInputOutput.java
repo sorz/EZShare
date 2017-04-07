@@ -31,12 +31,8 @@ public class EZInputOutput {
         outputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
-    public EZInputOutput(String hostname, int port) throws IOException {
-        this(new Socket(hostname, port));
-    }
-
     public EZInputOutput(Server server) throws IOException {
-        this(server.getHostname(), server.getPort());
+        this(new Socket(server.getHostname(), server.getPort()));
     }
 
     public void close() {
@@ -56,15 +52,15 @@ public class EZInputOutput {
 
     /**
      * Read a JSON value from either read from socket or last fail-to-parsed
-     * string in buffer.
-     * When JsonParseException or JsonMappingException throws, current string
-     * will be kept on buffer for next parsing.
-     * @param type same as ObjectMapper.readValue()
-     * @param <T> same as ObjectMapper.readValue()
-     * @return same as ObjectMapper.readValue()
+     * string in the internal buffer.
+     * When {@link JsonParseException} or {@link JsonMappingException} throws,
+     * current string will be kept on a internal buffer for next parsing.
+     * @param type same as {@link ObjectMapper#readValue(String, Class)}.
+     * @param <T> same as {@link ObjectMapper#readValue(String, Class)}.
+     * @return same as same as {@link ObjectMapper#readValue(String, Class)}.
      * @throws IOException if error on read socket.
-     * @throws JsonParseException same as ObjectMapper.readValue()
-     * @throws JsonMappingException same as ObjectMapper.readValue()
+     * @throws JsonParseException same as {@link ObjectMapper#readValue(String, Class)}.
+     * @throws JsonMappingException same as {@link ObjectMapper#readValue(String, Class)}.
      */
     public <T> T readJSON(Class<T> type) throws IOException {
         if (readBufferedLine == null)
@@ -74,21 +70,42 @@ public class EZInputOutput {
         return result;
     }
 
+    /**
+     * Wrapper for {@link #readJSON(Class)}, to read a {@link Command}.
+     * @return the parsed {@link Command}
+     * @throws IOException error on network or parsing.
+     */
     public Command readCommand() throws IOException {
         return readJSON(Command.class);
     }
 
+    /**
+     * Wrapper for {@link #readJSON(Class)}, to read a {@link Response}.
+     * @return the parsed {@link Response}
+     * @throws IOException error on network or parsing.
+     */
     public Response readResponse() throws IOException {
         return readJSON(Response.class);
     }
 
+    /**
+     * Serialize object to JSON string and write to network as a Java UTF string.
+     * @param value object to write.
+     * @throws IOException error on network or JSON serialization.
+     */
     public void sendJSON(Object value) throws IOException {
         String jsonString = mapper.writeValueAsString(value);
-        LOGGER.fine("send JSON:" + jsonString);
+        LOGGER.fine("send:" + jsonString);
         getOutputStream().writeUTF(jsonString);
         getOutputStream().flush();
     }
 
+    /**
+     * Wrapper for {@link #sendJSON(Object)}, but throw {@link UncheckedIOException}
+     * rather than normal {@link IOException}. Ideal for use in lambda.
+     * @param value the JSON object want send.
+     * @throws UncheckedIOException wrapper for a normal {@link IOException}.
+     */
     public void uncheckedSendJSON(Object value) throws UncheckedIOException {
         try {
             sendJSON(value);
@@ -98,8 +115,8 @@ public class EZInputOutput {
     }
 
     /**
-     * Read zero or more Resource object until ResultSize is read.
-     * @param consumer accept read Resource.
+     * Read zero or more {@link Response} until {@link ResultSize} is read.
+     * @param consumer accept read {@link Response}.
      * @throws IOException error on reading or parsing.
      */
     public int readResources(Consumer<Resource> consumer) throws IOException {
@@ -119,20 +136,36 @@ public class EZInputOutput {
         return resourceCount;
     }
 
+    /**
+     * Read binary data and write to output stream.
+     * @param outputStream where data write to.
+     * @param totalSize total bytes read and write.
+     * @return the number of bytes actually read and write.
+     * @throws IOException error on read or write.
+     */
     public long readBinaryTo(OutputStream outputStream, long totalSize) throws IOException {
         return IOUtils.copyLarge(getInputStream(), outputStream, 0, totalSize);
     }
 
+    /**
+     * Write binary data from input stream until EOF.
+     * @param inputStream data read from.
+     * @throws IOException error on read or write.
+     */
+    public void writeBinary(InputStream inputStream) throws IOException {
+        IOUtils.copyLarge(inputStream, getOutputStream());
+    }
 
-    public Socket getSocket() {
+
+    private Socket getSocket() {
         return socket;
     }
 
-    public DataInputStream getInputStream() {
+    private DataInputStream getInputStream() {
         return inputStream;
     }
 
-    public DataOutputStream getOutputStream() {
+    private DataOutputStream getOutputStream() {
         return outputStream;
     }
 

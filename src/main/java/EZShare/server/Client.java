@@ -103,7 +103,7 @@ class Client implements Runnable {
                     Pair<Resource, InputStream> resInput = commandHandler.doFetch((Fetch) command);
                     io.sendJSON(Response.createSuccess());
                     io.sendJSON(resInput.getLeft());
-                    IOUtils.copy(resInput.getRight(), io.getOutputStream());
+                    io.writeBinary(resInput.getRight());
                     io.sendJSON(new ResultSize(1));
                     break;
                 case EXCHANGE:
