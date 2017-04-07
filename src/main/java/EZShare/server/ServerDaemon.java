@@ -195,11 +195,16 @@ public class ServerDaemon implements ClientCommandHandler {
         ok.accept(null);
 
         Counter<Resource> counter = new Counter<>();
-        if (cmd.isRelay())
-            interServerService.queryAll(cmd, r -> {
+        if (cmd.isRelay()) {
+            Resource relayTemplate = new Resource(template);
+            relayTemplate.setChannel("");
+            relayTemplate.setOwner("");
+            Query query = new Query(relayTemplate, false);
+            interServerService.queryAll(query, r -> {
                 counter.count(r);
                 consumer.accept(r);
             });
+        }
         synchronized (resourceStorage) {
             resourceStorage.templateQuery(template)
                     .map(this::copyAsAnonymousResource)
@@ -237,8 +242,7 @@ public class ServerDaemon implements ClientCommandHandler {
         } catch (FileNotFoundException e) {
             LOGGER.warning(String.format("resource (%s, %s) file not found",
                     template.getChannel(), uri));
-            // TODO: can we throw "file not found" instead?
-            throw new CommandHandleException("invalid resourceTemplate");
+            throw new CommandHandleException("file not found on server");
         }
         return Pair.of(resource, inputStream);
     }

@@ -139,13 +139,12 @@ public class InterServerService implements Runnable {
      */
     void queryAll(Query query, Consumer<Resource> consumer) {
         CountDownLatch countDownLatch;
-        Query queryNoRelay = new Query(query, false);
         synchronized (servers) {
             countDownLatch = new CountDownLatch(servers.size());
             // Following code run in thread pool.
             servers.forEach(server -> executorService.submit(() -> {
                 try {
-                    query(queryNoRelay, server, consumer);
+                    query(query, server, consumer);
                 } catch (IOException e) {
                     LOGGER.fine("fail to query with " + server);
                     // TODO: should we remove that server?
