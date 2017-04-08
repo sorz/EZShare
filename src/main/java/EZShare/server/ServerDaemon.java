@@ -195,11 +195,14 @@ public class ServerDaemon implements ClientCommandHandler {
         ok.accept(null);
 
         Counter<Resource> counter = new Counter<>();
-        if (cmd.isRelay()) {
-            Resource relayTemplate = new Resource(template);
-            relayTemplate.setChannel("");
-            relayTemplate.setOwner("");
-            Query query = new Query(relayTemplate, false);
+        if (cmd.isRelay()
+                && template.getChannel().isEmpty()
+                && template.getOwner().isEmpty()) {
+            // Ignore `relay = true` when channel or owner is not empty?
+            // Seems reasonable, but specification say: no, set them to empty
+            // then do relay.
+            // TODO: check whether ignore or set to empty.
+            Query query = new Query(template, false);
             interServerService.queryAll(query, r -> {
                 counter.count(r);
                 consumer.accept(r);
