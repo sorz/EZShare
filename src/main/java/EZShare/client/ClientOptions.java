@@ -7,7 +7,7 @@ import java.net.URI;
 import java.util.List;
 
 /**
- *  Store options for running a client.
+ * Store options for running a client.
  * Created by xierch on 2017/3/22.
  */
 public class ClientOptions {
@@ -20,7 +20,6 @@ public class ClientOptions {
     private int port;
     private String secret;
     private List<Pair<String, Integer>> servers;
-    private String share;
     private List<String> tags;
     private URI uri;
 
@@ -69,11 +68,6 @@ public class ClientOptions {
         return this;
     }
 
-    public ClientOptions setShare(String share) {
-        this.share = share;
-        return this;
-    }
-
     public ClientOptions setTags(List<String> tags) {
         this.tags = tags;
         return this;
@@ -118,10 +112,6 @@ public class ClientOptions {
 
     public List<Pair<String, Integer>> getServers() {
         return servers;
-    }
-
-    public String getShare() {
-        return share;
     }
 
     public List<String> getTags() {
