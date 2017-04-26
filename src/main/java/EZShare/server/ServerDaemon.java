@@ -8,10 +8,13 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
+import java.util.Hashtable;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Main class for server.
@@ -53,16 +56,31 @@ public class ServerDaemon implements ClientCommandHandler {
      */
     public void serveForever() throws IOException {
         LOGGER.info("server is running");
-        long lastAcceptTimeMillis = (long) (- options.getConnectionIntervalLimit() * 1000);
+        final long intervalLimitMillis = (long) (options.getConnectionIntervalLimit() * 1000);
+        Hashtable<String, Long> lastAcceptTimestamps = new Hashtable<>();
+        long lastCleanupTable = System.currentTimeMillis();
+
         while (isRunning) {
             Socket socket = serverSocket.accept();
-            if (System.currentTimeMillis() - lastAcceptTimeMillis <
-                    options.getConnectionIntervalLimit() * 1000) {
+
+            // Reject if that IP connecting too frequently.
+            long lastAcceptTimeMillis = lastAcceptTimestamps.getOrDefault(
+                    socket.getInetAddress().getHostAddress(), -intervalLimitMillis);
+            if (System.currentTimeMillis() - lastAcceptTimeMillis < intervalLimitMillis) {
                 LOGGER.info("reject connection from " + socket.getInetAddress());
                 IOUtils.closeQuietly(socket);
                 continue;
             }
-            lastAcceptTimeMillis = System.currentTimeMillis();
+            lastAcceptTimestamps.put(socket.getInetAddress().getHostAddress(), System.currentTimeMillis());
+            // Clean up lastAcceptTimestamps if we have many entries in it.
+            if (lastAcceptTimestamps.size() > 64
+                    && System.currentTimeMillis() - lastCleanupTable > intervalLimitMillis) {
+                lastAcceptTimestamps = new Hashtable<>(lastAcceptTimestamps.entrySet()
+                        .stream().filter(e -> System.currentTimeMillis() - e.getValue() < intervalLimitMillis)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+                lastCleanupTable = System.currentTimeMillis();
+            }
+
             LOGGER.info("accept connection from " + socket.getInetAddress());
             try {
                 Client client = new Client(socket, this);
