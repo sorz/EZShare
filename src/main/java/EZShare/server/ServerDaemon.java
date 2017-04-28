@@ -10,6 +10,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
@@ -216,12 +217,16 @@ public class ServerDaemon implements ClientCommandHandler {
         // Return local resource first.
         // If client do not want wait too long and disconnect in advance,
         // this ensure them do not miss local resources.
+        Set<Resource> localResources;
         synchronized (resourceStorage) {
-            resourceStorage.templateQuery(template)
-                    .map(this::copyAsAnonymousResource)
-                    .map(counter::count)
-                    .forEach(consumer);
+            // Collect results to prevent slow client holding the lock.
+            localResources = resourceStorage.templateQuery(template)
+                    .collect(Collectors.toSet());
         }
+        localResources.stream()
+                .map(this::copyAsAnonymousResource)
+                .map(counter::count)
+                .forEach(consumer);
         if (cmd.isRelay()) {
             // Although ignore query with non-blank channel/owner is more reasonable,
             // the specification enforce to set them empty and relay.
