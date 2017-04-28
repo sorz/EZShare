@@ -18,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class EZInputOutput {
     private final static Logger LOGGER = Logger.getLogger(EZInputOutput.class.getName());
-    private final static int DEFAULT_SOCKET_TIMEOUT = 15 * 1000;  // 10 seconds
+    private final static int DEFAULT_SOCKET_TIMEOUT = 30 * 1000;  // 30 seconds
 
     private final ObjectMapper mapper = ObjectMapperGetter.get();
     private final Socket socket;
