@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * For JSON. Include in many JSON command, e.g. PUBLISH, REMOVE, ...
@@ -60,7 +61,7 @@ public class Resource {
     }
 
     public String getName() {
-        return name == null ? "" : name;
+        return name == null ? "" : name.trim();
     }
 
     public void setName(String name) {
@@ -70,7 +71,7 @@ public class Resource {
     public List<String> getTags() {
         if (tags == null)
             tags = new ArrayList<>();
-        return tags;
+        return tags.stream().map(String::trim).collect(Collectors.toList());
     }
 
     public void setTags(List<String> tags) {
@@ -78,7 +79,7 @@ public class Resource {
     }
 
     public String getDescription() {
-        return description == null ? "" : description;
+        return description == null ? "" : description.trim();
     }
 
     public void setDescription(String description) {
@@ -86,7 +87,7 @@ public class Resource {
     }
 
     public String getUri() {
-        return uri == null ? "" : uri;
+        return uri == null ? "" : uri.trim();
     }
 
     @JsonIgnore
@@ -103,7 +104,7 @@ public class Resource {
     }
 
     public String getChannel() {
-        return channel == null ? "" : channel;
+        return channel == null ? "" : channel.trim();
     }
 
     public void setChannel(String channel) {
@@ -111,7 +112,7 @@ public class Resource {
     }
 
     public String getOwner() {
-        return owner == null ? "" : owner;
+        return owner == null ? "" : owner.trim();
     }
 
     public void setOwner(String owner) {
@@ -119,7 +120,7 @@ public class Resource {
     }
 
     public String getEzserver() {
-        return ezserver;
+        return ezserver.trim();
     }
 
     public void setEzserver(String ezserver) {
