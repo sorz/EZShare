@@ -27,6 +27,8 @@ public class InterServerService implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(InterServerService.class.getName());
     // We may not want server start too many threads on user's query request.
     private final static int MAX_QUERY_THREAD = 32;
+    // 10 secs for inter-server queries, less than others.
+    private final static int MAX_SOCKET_TIMEOUT = 10 * 1000;
 
     private final Set<Server> servers = new HashSet<>();
     private final Server localServer;
@@ -146,7 +148,8 @@ public class InterServerService implements Runnable {
                 try {
                     query(query, server, consumer);
                 } catch (IOException e) {
-                    LOGGER.fine("fail to query with " + server);
+                    LOGGER.fine(String.format("fail to query with %s: %s\n",
+                            server, e.getMessage()));
                     // TODO: should we remove that server?
                 } finally {
                     countDownLatch.countDown();
@@ -165,7 +168,7 @@ public class InterServerService implements Runnable {
     private void query(Query query, Server server,
                        Consumer<Resource> consumer)
             throws IOException {
-        EZInputOutput io = new EZInputOutput(server);
+        EZInputOutput io = new EZInputOutput(server, MAX_SOCKET_TIMEOUT);
         io.sendJSON(query);
         Response response = io.readResponse();
         if (!response.isSuccess()) {

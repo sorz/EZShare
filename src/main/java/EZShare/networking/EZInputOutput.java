@@ -8,6 +8,7 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -17,7 +18,7 @@ import java.util.logging.Logger;
  */
 public class EZInputOutput {
     private final static Logger LOGGER = Logger.getLogger(EZInputOutput.class.getName());
-    private final static int DEFAULT_SOCKET_TIMEOUT = 10 * 1000;  // 10 seconds
+    private final static int DEFAULT_SOCKET_TIMEOUT = 15 * 1000;  // 10 seconds
 
     private final ObjectMapper mapper = ObjectMapperGetter.get();
     private final Socket socket;
@@ -26,16 +27,25 @@ public class EZInputOutput {
 
     private String readBufferedLine;
 
-    public EZInputOutput(Socket socket) throws IOException {
+    public EZInputOutput(Socket socket, int timeout) throws IOException {
         this.socket = socket;
-        socket.setSoTimeout(DEFAULT_SOCKET_TIMEOUT);
+        socket.setSoTimeout(timeout);
         inputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
         outputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
-    public EZInputOutput(Server server) throws IOException {
-        this(new Socket(server.getHostname(), server.getPort()));
+    public EZInputOutput(Socket socket) throws IOException {
+        this(socket, DEFAULT_SOCKET_TIMEOUT);
     }
+
+    public EZInputOutput(Server server, int timeout) throws IOException {
+        this(new Socket(server.getHostname(), server.getPort()), timeout);
+    }
+
+    public EZInputOutput(Server server) throws IOException {
+        this(server, DEFAULT_SOCKET_TIMEOUT);
+    }
+
 
     public void close() {
         IOUtils.closeQuietly(getSocket());
