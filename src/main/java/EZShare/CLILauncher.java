@@ -27,7 +27,6 @@ abstract class CLILauncher<T> {
             line = parser.parse(options, getArgs());
         } catch (ParseException e) {
             System.err.println("Failed to parse CLI arguments.\n" + e);
-            printUsage();
             return 1;
         }
         if (line.hasOption("help")) {
