@@ -213,24 +213,27 @@ public class ServerDaemon implements ClientCommandHandler {
         ok.accept(null);
 
         Counter<Resource> counter = new Counter<>();
-        if (cmd.isRelay()
-                && template.getChannel().isEmpty()
-                && template.getOwner().isEmpty()) {
-            // Ignore `relay = true` when channel or owner is not empty?
-            // Seems reasonable, but specification say: no, set them to empty
-            // then do relay.
-            // TODO: check whether ignore or set to empty.
-            Query query = new Query(template, false);
-            interServerService.queryAll(query, r -> {
-                counter.count(r);
-                consumer.accept(r);
-            });
-        }
+        // Return local resource first.
+        // If client do not want wait too long and disconnect in advance,
+        // this ensure them do not miss local resources.
         synchronized (resourceStorage) {
             resourceStorage.templateQuery(template)
                     .map(this::copyAsAnonymousResource)
                     .map(counter::count)
                     .forEach(consumer);
+        }
+        if (cmd.isRelay()) {
+            // Although ignore query with non-blank channel/owner is more reasonable,
+            // the specification enforce to set them empty and relay.
+            // We follow the specification here.
+            Resource anonymousTemplate = new Resource(template);
+            anonymousTemplate.setChannel("");
+            anonymousTemplate.setOwner("");
+            Query query = new Query(anonymousTemplate, false);
+            interServerService.queryAll(query, r -> {
+                counter.count(r);
+                consumer.accept(r);
+            });
         }
         return counter.num;
     }
