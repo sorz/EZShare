@@ -120,7 +120,7 @@ public class Resource {
     }
 
     public String getEzserver() {
-        return ezserver.trim();
+        return ezserver == null? null : ezserver.trim();
     }
 
     public void setEzserver(String ezserver) {
