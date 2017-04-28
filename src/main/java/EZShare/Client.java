@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 /**
  * Entrance of client program.
- * Created by xierch on 2017/3/22.
+ * Created on 2017/3/22.
  */
 public class Client extends CLILauncher<ClientOptions> {
     private final static Logger LOGGER = Logger.getLogger(Client.class.getName());

@@ -8,7 +8,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 /**
  * For JSON. Include in EXCHANGE command.
  *
- * Created by xierch on 2017/3/29.
+ * Created on 2017/3/29.
  */
 public class Server {
     private final String hostname;

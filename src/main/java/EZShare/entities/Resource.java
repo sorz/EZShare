@@ -12,7 +12,7 @@ import java.util.List;
 
 /**
  * For JSON. Include in many JSON command, e.g. PUBLISH, REMOVE, ...
- * Created by xierch on 2017/3/22.
+ * Created on 2017/3/22.
  */
 public class Resource {
     private static final String[] SIZE_UNITS =

@@ -9,7 +9,7 @@ import java.util.stream.Stream;
 
 /**
  * Store resources on memory.
- * Created by xierch on 2017/3/27.
+ * Created on 2017/3/27.
  */
 public class MemoryResourceStorage implements ResourceStorage {
     private HashMap<Pair<String, URI>, Resource> resources = new HashMap<>();

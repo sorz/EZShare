@@ -8,7 +8,7 @@ import java.util.List;
 
 /**
  * Store options for running a client.
- * Created by xierch on 2017/3/22.
+ * Created on 2017/3/22.
  */
 public class ClientOptions {
     private Command.CMD command;

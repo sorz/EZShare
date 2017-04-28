@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 /**
  * Put, update, lookup resources.
- * Created by xierch on 2017/3/27.
+ * Created on 2017/3/27.
  */
 public interface ResourceStorage {
     public void put(String channel, URI uri, Resource resource);

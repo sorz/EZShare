@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 
 /**
  * All commands that client may send to server.
- * Created by xierch on 2017/3/24.
+ * Created on 2017/3/24.
  */
 public interface ClientCommandHandler {
     void doPublish(Publish cmd) throws CommandHandleException;

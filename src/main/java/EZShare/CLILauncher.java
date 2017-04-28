@@ -8,7 +8,7 @@ import java.util.logging.LogManager;
 
 /**
  * Provide CLI argument related common methods used on both Server and Client.
- * Created by xierch on 2017/3/22.
+ * Created on 2017/3/22.
  */
 abstract class CLILauncher<T> {
     private final String[] args;

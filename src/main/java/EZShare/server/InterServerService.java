@@ -21,7 +21,7 @@ import java.util.logging.Logger;
  *   EXCHANGE command must be handle elsewhere and only to add servers with
  *   addServers() method.
  *
- * Created by xierch on 2017/3/29.
+ * Created on 2017/3/29.
  */
 public class InterServerService implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(InterServerService.class.getName());

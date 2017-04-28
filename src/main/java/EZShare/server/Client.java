@@ -23,7 +23,7 @@ import java.util.logging.Logger;
  * This class only do a little check on commands. ClientCommandHandler have to
  * check whether a command is well-formatted and legal.
  *
- * Created by xierch on 2017/3/23.
+ * Created on 2017/3/23.
  */
 class Client implements Runnable {
     private final static Logger LOGGER = Logger.getLogger(Client.class.getName());

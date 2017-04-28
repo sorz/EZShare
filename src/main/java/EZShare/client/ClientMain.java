@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 /**
  * Main class for EZShare client.
- * Created by xierch on 2017/3/23.
+ * Created on 2017/3/23.
  */
 public class ClientMain {
     private final static Logger LOGGER = Logger.getLogger(ClientMain.class.getName());

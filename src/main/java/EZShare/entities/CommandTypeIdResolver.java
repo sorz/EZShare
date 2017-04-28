@@ -13,7 +13,7 @@ import java.lang.reflect.Modifier;
  * Reference:
  * https://www.thomaskeller.biz/blog/2013/09/10/custom-polymorphic-type-handling-with-jackson/
  *
- * Created by xierch on 2017/3/23.
+ * Created on 2017/3/23.
  */
 public class CommandTypeIdResolver implements TypeIdResolver {
     private static final String COMMAND_PACKAGE = Command.class.getPackage().getName();

@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * For JSON. Server's response to a request command.
  * Either success or error. Error response has a errorMessage.
- * Created by xierch on 2017/3/22.
+ * Created on 2017/3/22.
  */
 public class Response {
     private static final String RESPONSE_SUCCESS = "success";

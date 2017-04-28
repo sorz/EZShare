@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 /**
  * Basic I/O operations for EZ protocol.
- * Created by xierch on 2017/3/23.
+ * Created on 2017/3/23.
  */
 public class EZInputOutput {
     private final static Logger LOGGER = Logger.getLogger(EZInputOutput.class.getName());

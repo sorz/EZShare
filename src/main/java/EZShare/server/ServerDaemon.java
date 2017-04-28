@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 /**
  * Main class for server.
- * Created by xierch on 2017/3/23.
+ * Created on 2017/3/23.
  */
 public class ServerDaemon implements ClientCommandHandler {
     private final static Logger LOGGER = Logger.getLogger(ServerDaemon.class.getName());

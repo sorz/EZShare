@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * For JSON. QUERY command.
- * Created by xierch on 2017/3/23.
+ * Created on 2017/3/23.
  */
 public class Query extends CommandWithResourceTemplate {
     private final boolean relay;

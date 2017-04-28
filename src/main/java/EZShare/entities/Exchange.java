@@ -9,7 +9,7 @@ import java.util.List;
  * For JSON. EXCHANGE command.
  * Receive a list of EZShare host:port names.
  *
- * Created by xierch on 2017/3/29.
+ * Created on 2017/3/29.
  */
 public class Exchange extends Command {
     private final List<Server> serverList;

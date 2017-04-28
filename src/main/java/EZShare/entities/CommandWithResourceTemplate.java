@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * For JSON. A command with one resource template field.
- * Created by xierch on 2017/3/23.
+ * Created on 2017/3/23.
  */
 abstract class CommandWithResourceTemplate extends Command {
     private final Resource resourceTemplate;

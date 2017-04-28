@@ -7,7 +7,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * For JSON. SHARE command.
  * Create a resource on the server, URI must be file.
  *
- * Created by xierch on 2017/3/23.
+ * Created on 2017/3/23.
  */
 public class Share extends CommandWithResource {
     private String secret;

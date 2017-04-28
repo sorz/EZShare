@@ -2,7 +2,7 @@ package EZShare.server;
 
 /**
  * Store all options for running a server.
- * Created by xierch on 2017/3/22.
+ * Created on 2017/3/22.
  */
 public class ServerOptions {
     private final String hostname;

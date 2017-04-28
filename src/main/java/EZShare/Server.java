@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 /**
  * Entrance of server program.
- * Created by xierch on 2017/3/22.
+ * Created on 2017/3/22.
  */
 public class Server extends CLILauncher<ServerOptions> {
     private final static Logger LOGGER = Logger.getLogger(Server.class.getName());
