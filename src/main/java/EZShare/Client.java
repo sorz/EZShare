@@ -62,6 +62,7 @@ public class Client extends CLILauncher<ClientOptions> {
         Option share = new Option("share", "share resource on server");
         Option tags = new Option("tags", true, "resource tags, tag1,tag2,tag3,...");
         Option uri = new Option("uri", true, "resource URI");
+        Option secure = new Option("secure", "make a secure connection");
 
         port.setType(Number.class);
 
@@ -81,13 +82,12 @@ public class Client extends CLILauncher<ClientOptions> {
         options.addOption(share);
         options.addOption(tags);
         options.addOption(uri);
+        options.addOption(secure);
         return options;
     }
 
     @Override
     ClientOptions parseCommandLine(CommandLine line) throws ParseException {
-        final int DEFAULT_PORT = 3780;
-
         ClientOptions options = new ClientOptions();
         Command.CMD[] commands = Arrays.stream(Command.CMD.values())
                 .filter((cmd -> line.hasOption(cmd.name().toLowerCase())))
@@ -104,14 +104,12 @@ public class Client extends CLILauncher<ClientOptions> {
                 .setHost(line.getOptionValue("host", "localhost"))
                 .setName(line.getOptionValue("name", ""))
                 .setOwner(line.getOptionValue("owner", ""))
-                .setSecret(line.getOptionValue("secret"));
+                .setSecret(line.getOptionValue("secret"))
+                .setSecure(line.hasOption("secure"));
 
-        // TODO: remove repeating code on parse port number.
         int port = DEFAULT_PORT;
         if (line.hasOption("port"))
-            port = ((Number) line.getParsedOptionValue("port")).intValue();
-        if ((port & ~0xffff) != 0)
-            throw new ParseException("port number must within 0 to 65535.");
+            port = parsePortNumber((Number) line.getParsedOptionValue("port"));
         options.setPort(port);
 
         if (line.hasOption("servers")) {

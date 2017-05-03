@@ -59,17 +59,21 @@ public class Server extends CLILauncher<ServerOptions> {
                 "exchange interval in seconds");
         Option port = new Option("port", true,
                 "server port, an integer");
+        Option sport = new Option("sport", true,
+                "server secure port, an integer");
         Option secret = new Option("secret", true,
                 "secret");
 
         limit.setType(Number.class);
         interval.setType(Number.class);
         port.setType(Number.class);
+        sport.setType(Number.class);
 
         options.addOption(hostname);
         options.addOption(limit);
         options.addOption(interval);
         options.addOption(port);
+        options.addOption(sport);
         options.addOption(secret);
         return options;
     }
@@ -103,9 +107,10 @@ public class Server extends CLILauncher<ServerOptions> {
 
         int port = DEFAULT_PORT;
         if (line.hasOption("port"))
-            port = ((Number) line.getParsedOptionValue("port")).intValue();
-        if ((port & ~0xffff) != 0)
-            throw new ParseException("port number must within 0 to 65535.");
+            port = parsePortNumber((Number) line.getParsedOptionValue("port"));
+        int sport = DEFAULT_SECURE_PORT;
+        if (line.hasOption("sport"))
+            sport = parsePortNumber((Number) line.getParsedOptionValue("sport"));
 
         String secret = line.getOptionValue("secret");
         if (secret == null) {
@@ -113,7 +118,7 @@ public class Server extends CLILauncher<ServerOptions> {
             LOGGER.info("random secret generated: " + secret);
         }
 
-        return new ServerOptions(hostname, limit, interval, port, secret);
+        return new ServerOptions(hostname, limit, interval, port, sport, secret);
     }
 
 }

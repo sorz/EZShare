@@ -9,14 +9,20 @@ public class ServerOptions {
     private final double connectionIntervalLimit;
     private final int exchangeInterval;
     private final int port;
+    private final int sport;
     private final String secret;
 
-    public ServerOptions(String hostname, double connectionIntervalLimit, int exchangeInterval, int port,
+    public ServerOptions(String hostname,
+                         double connectionIntervalLimit,
+                         int exchangeInterval,
+                         int port,
+                         int sport,
                          String secret) {
         this.hostname = hostname;
         this.connectionIntervalLimit = connectionIntervalLimit;
         this.exchangeInterval = exchangeInterval;
         this.port = port;
+        this.sport = sport;
         this.secret = secret;
     }
 
@@ -34,6 +40,10 @@ public class ServerOptions {
 
     int getPort() {
         return port;
+    }
+
+    int getSport() {
+        return sport;
     }
 
     String getSecret() {

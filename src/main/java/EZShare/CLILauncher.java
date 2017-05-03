@@ -11,6 +11,9 @@ import java.util.logging.LogManager;
  * Created on 2017/3/22.
  */
 abstract class CLILauncher<T> {
+    static final int DEFAULT_PORT = 3780;
+    static final int DEFAULT_SECURE_PORT = DEFAULT_PORT + 1;
+
     private final String[] args;
     private final String usage;
 
@@ -77,4 +80,11 @@ abstract class CLILauncher<T> {
     abstract T parseCommandLine(CommandLine line) throws ParseException;
 
     abstract int run(T settings);
+
+    static int parsePortNumber(Number port) throws ParseException {
+        int portInt = port.intValue();
+        if ((portInt & ~0xffff) != 0)
+            throw new ParseException("port number must within 0 to 65535.");
+        return portInt;
+    }
 }

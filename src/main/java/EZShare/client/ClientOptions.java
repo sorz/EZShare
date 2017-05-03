@@ -22,6 +22,7 @@ public class ClientOptions {
     private List<Pair<String, Integer>> servers;
     private List<String> tags;
     private URI uri;
+    private boolean secure;
 
     public ClientOptions setCommand(Command.CMD command) {
         this.command = command;
@@ -78,6 +79,11 @@ public class ClientOptions {
         return this;
     }
 
+    public ClientOptions setSecure(boolean secure) {
+        this.secure = secure;
+        return this;
+    }
+
     public Command.CMD getCommand() {
         return command;
     }
@@ -124,5 +130,9 @@ public class ClientOptions {
 
     public String getUriString() {
         return getUri() == null ? "" : getUri().toString();
+    }
+
+    public boolean isSecure() {
+        return secure;
     }
 }
