@@ -4,8 +4,6 @@ import EZShare.entities.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -15,7 +13,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -31,19 +28,12 @@ public class ServerDaemon implements ClientCommandHandler {
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final InterServerService interServerService;
     private final ResourceStorage resourceStorage = new MemoryResourceStorage();
-
-    private final long intervalLimitMillis;
-    private long lastCleanupTable = System.currentTimeMillis();
-    private Hashtable<String, Long> lastAcceptTimestamps = new Hashtable<>();
-
     private ServerSocket serverSocket;
-    private ServerSocket secureServerSocket;
     private boolean isRunning;
 
 
     public ServerDaemon(ServerOptions options) {
         this.options = options;
-        intervalLimitMillis = (long) (options.getConnectionIntervalLimit() * 1000);
         interServerService = new InterServerService(
                 options.getHostname(), options.getPort(),
                 options.getExchangeInterval() * 1000);
@@ -56,76 +46,50 @@ public class ServerDaemon implements ClientCommandHandler {
     public void start() throws IOException {
         LOGGER.info("bind on port " + options.getPort());
         serverSocket = new ServerSocket(options.getPort());
-        LOGGER.info("bind on port " + options.getSport());
-        secureServerSocket = SSLServerSocketFactory.getDefault()
-                .createServerSocket(options.getSport());
         isRunning = true;
         executorService.submit(interServerService);
-    }
-
-    private Runnable getServerSocketAcceptor(ServerSocket server,
-                                             Consumer<Socket> clientHandler) {
-        return () -> {
-            try {
-                while (isRunning)
-                    clientHandler.accept(server.accept());
-            } catch (IOException e) {
-                LOGGER.warning("fail to accept socket: " + e);
-            }
-        };
     }
 
     /**
      * Never return unless stop() be invoke or exceptions throw.
      * Must invoke after start().
+     * @throws IOException if error on accept socket.
      */
-    public void serveForever() {
-        executorService.submit(getServerSocketAcceptor(
-                serverSocket, this::handleIncomingConnection));
-        executorService.submit(getServerSocketAcceptor(
-                secureServerSocket, this::handleIncomingConnection));
+    public void serveForever() throws IOException {
         LOGGER.info("server is running");
-        try {
-            // noinspection StatementWithEmptyBody
-            while (!executorService.awaitTermination(1, TimeUnit.DAYS))
-                ;
-        } catch (InterruptedException e) {
-            // ignore
-        }
-    }
+        final long intervalLimitMillis = (long) (options.getConnectionIntervalLimit() * 1000);
+        Hashtable<String, Long> lastAcceptTimestamps = new Hashtable<>();
+        long lastCleanupTable = System.currentTimeMillis();
 
-    private void handleIncomingConnection(Socket socket) {
-        // Reject if that IP connecting too frequently.
-        if (isConnectIntervalTooShort(socket.getInetAddress().getHostAddress())) {
-            LOGGER.info("reject connection from " + socket.getInetAddress());
-            IOUtils.closeQuietly(socket);
-            return;
-        }
-        LOGGER.info("accept connection from " + socket.getInetAddress());
-        try {
-            boolean isSecure = socket instanceof SSLSocket;
-            Client client = new Client(socket, this, isSecure);
-            executorService.submit(client);
-        } catch (IOException e) {
-            LOGGER.warning("error on handle client " + socket.getInetAddress() + ": " + e);
-        }
-    }
+        while (isRunning) {
+            Socket socket = serverSocket.accept();
 
-     synchronized private boolean isConnectIntervalTooShort(String host) {
-        long lastAcceptTimeMillis = lastAcceptTimestamps.getOrDefault(host, -intervalLimitMillis);
-        if (System.currentTimeMillis() - lastAcceptTimeMillis < intervalLimitMillis)
-            return true;
+            // Reject if that IP connecting too frequently.
+            long lastAcceptTimeMillis = lastAcceptTimestamps.getOrDefault(
+                    socket.getInetAddress().getHostAddress(), -intervalLimitMillis);
+            if (System.currentTimeMillis() - lastAcceptTimeMillis < intervalLimitMillis) {
+                LOGGER.info("reject connection from " + socket.getInetAddress());
+                IOUtils.closeQuietly(socket);
+                continue;
+            }
+            lastAcceptTimestamps.put(socket.getInetAddress().getHostAddress(), System.currentTimeMillis());
+            // Clean up lastAcceptTimestamps if we have many entries in it.
+            if (lastAcceptTimestamps.size() > 64
+                    && System.currentTimeMillis() - lastCleanupTable > intervalLimitMillis) {
+                lastAcceptTimestamps = new Hashtable<>(lastAcceptTimestamps.entrySet()
+                        .stream().filter(e -> System.currentTimeMillis() - e.getValue() < intervalLimitMillis)
+                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+                lastCleanupTable = System.currentTimeMillis();
+            }
 
-        lastAcceptTimestamps.put(host, System.currentTimeMillis());
-        // Clean up lastAcceptTimestamps if we have many entries in it.
-        if (lastAcceptTimestamps.size() > 64
-                && System.currentTimeMillis() - lastCleanupTable > intervalLimitMillis) {
-            lastAcceptTimestamps = new Hashtable<>(lastAcceptTimestamps.entrySet()
-                    .stream().filter(e -> System.currentTimeMillis() - e.getValue() < intervalLimitMillis)
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
-            lastCleanupTable = System.currentTimeMillis();
+            LOGGER.info("accept connection from " + socket.getInetAddress());
+            try {
+                Client client = new Client(socket, this);
+                executorService.submit(client);
+            } catch (IOException e) {
+                LOGGER.warning("error on handle client " + socket.getInetAddress() + ": " + e);
+            }
         }
-        return false;
     }
 
     public void stop() {

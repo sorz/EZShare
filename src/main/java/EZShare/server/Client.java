@@ -30,7 +30,6 @@ class Client implements Runnable {
 
     final private EZInputOutput io;
     final private ClientCommandHandler commandHandler;
-    final private boolean isSecure;
 
     /**
      * Create a Client.
@@ -38,10 +37,9 @@ class Client implements Runnable {
      * @param commandHandler to handle client's command.
      * @throws IOException if fail on the socket. Will close by this class.
      */
-    Client(Socket socket, ClientCommandHandler commandHandler, boolean isSecure) throws IOException {
+    Client(Socket socket, ClientCommandHandler commandHandler) throws IOException {
         io = new EZInputOutput(socket);
         this.commandHandler = commandHandler;
-        this.isSecure = isSecure;
     }
 
     /**
