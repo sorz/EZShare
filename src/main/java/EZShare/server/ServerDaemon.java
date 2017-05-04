@@ -4,6 +4,7 @@ import EZShare.entities.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.net.ssl.SSLServerSocketFactory;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -27,27 +29,75 @@ public class ServerDaemon implements ClientCommandHandler {
     private final ServerOptions options;
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final InterServerService interServerService;
-    private final ResourceStorage resourceStorage = new MemoryResourceStorage();
+    private final ResourceStorage resourceStorage;
     private ServerSocket serverSocket;
+    private final boolean secure;
+    private final int bindPort;
     private boolean isRunning;
 
 
-    public ServerDaemon(ServerOptions options) {
+    public ServerDaemon(ServerOptions options, ResourceStorage resourceStorage, boolean isSecure) {
         this.options = options;
+        this.secure = isSecure;
+        bindPort = isSecure ? options.getSport() : options.getPort();
+        this.resourceStorage = resourceStorage;
         interServerService = new InterServerService(
                 options.getHostname(), options.getPort(),
                 options.getExchangeInterval() * 1000);
     }
+
+    public ServerDaemon(ServerOptions options, ResourceStorage resourceStorage) {
+        this(options, resourceStorage, false);
+    }
+
+    private boolean isSecure() {
+        return secure;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("server daemon (:%d)", bindPort);
+    }
+
 
     /**
      * Bind to port.
      * @throws IOException if failed to bind the port.
      */
     public void start() throws IOException {
-        LOGGER.info("bind on port " + options.getPort());
-        serverSocket = new ServerSocket(options.getPort());
+        LOGGER.info(String.format("bind on %s port %d",
+                isSecure() ?  "secure" : "", bindPort));
+        if (isSecure()) {
+            serverSocket = SSLServerSocketFactory.getDefault()
+                    .createServerSocket(bindPort);
+        } else {
+            serverSocket = new ServerSocket(bindPort);
+        }
         isRunning = true;
         executorService.submit(interServerService);
+    }
+
+    public void startInBackground() throws IOException {
+        start();
+        executorService.submit(() -> {
+           try {
+               serveForever();
+           } catch (IOException e) {
+               LOGGER.warning(this + " stopped due to " + e);
+           } finally {
+               stop();
+           }
+        });
+    }
+
+    public void waitForStop() {
+        try {
+            // noinspection StatementWithEmptyBody
+            while (!executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS))
+                ;
+        } catch (InterruptedException e) {
+            LOGGER.info(this + " stopped due to " + e);
+        }
     }
 
     /**
@@ -56,44 +106,46 @@ public class ServerDaemon implements ClientCommandHandler {
      * @throws IOException if error on accept socket.
      */
     public void serveForever() throws IOException {
-        LOGGER.info("server is running");
+        LOGGER.info(this + " is running");
         final long intervalLimitMillis = (long) (options.getConnectionIntervalLimit() * 1000);
         Hashtable<String, Long> lastAcceptTimestamps = new Hashtable<>();
         long lastCleanupTable = System.currentTimeMillis();
 
         while (isRunning) {
             Socket socket = serverSocket.accept();
-
             // Reject if that IP connecting too frequently.
             long lastAcceptTimeMillis = lastAcceptTimestamps.getOrDefault(
                     socket.getInetAddress().getHostAddress(), -intervalLimitMillis);
             if (System.currentTimeMillis() - lastAcceptTimeMillis < intervalLimitMillis) {
-                LOGGER.info("reject connection from " + socket.getInetAddress());
+                LOGGER.info(this + " - reject connection from " + socket.getInetAddress());
                 IOUtils.closeQuietly(socket);
                 continue;
             }
-            lastAcceptTimestamps.put(socket.getInetAddress().getHostAddress(), System.currentTimeMillis());
+            lastAcceptTimestamps.put(socket.getInetAddress().getHostAddress(),
+                    System.currentTimeMillis());
             // Clean up lastAcceptTimestamps if we have many entries in it.
             if (lastAcceptTimestamps.size() > 64
                     && System.currentTimeMillis() - lastCleanupTable > intervalLimitMillis) {
                 lastAcceptTimestamps = new Hashtable<>(lastAcceptTimestamps.entrySet()
-                        .stream().filter(e -> System.currentTimeMillis() - e.getValue() < intervalLimitMillis)
+                        .stream().filter(e ->
+                                System.currentTimeMillis() - e.getValue() < intervalLimitMillis)
                         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
                 lastCleanupTable = System.currentTimeMillis();
             }
 
-            LOGGER.info("accept connection from " + socket.getInetAddress());
+            LOGGER.info(this + " - accept connection from " + socket.getInetAddress());
             try {
                 Client client = new Client(socket, this);
                 executorService.submit(client);
             } catch (IOException e) {
-                LOGGER.warning("error on handle client " + socket.getInetAddress() + ": " + e);
+                LOGGER.warning(this + " - error on handle client "
+                        + socket.getInetAddress() + ": " + e);
             }
         }
     }
 
     public void stop() {
-        LOGGER.info("stopping");
+        LOGGER.info("stopping " + this);
         isRunning = false;
         interServerService.stop();
         IOUtils.closeQuietly(serverSocket);

@@ -1,5 +1,7 @@
 package EZShare;
 
+import EZShare.server.MemoryResourceStorage;
+import EZShare.server.ResourceStorage;
 import EZShare.server.ServerDaemon;
 import EZShare.server.ServerOptions;
 import org.apache.commons.cli.*;
@@ -30,20 +32,19 @@ public class Server extends CLILauncher<ServerOptions> {
 
     @Override
     int run(ServerOptions options) {
-        ServerDaemon server = new ServerDaemon(options);
+        ResourceStorage storage = new MemoryResourceStorage();
+        ServerDaemon server = new ServerDaemon(options, storage);
+        ServerDaemon secureServer = new ServerDaemon(options, storage, true);
         try {
-            server.start();
+            server.startInBackground();
+            secureServer.startInBackground();
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE,"failed to start server: " + e);
             return -2;
         }
-        try {
-            server.serveForever();
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE,"error on running server: " + e);
-        } finally {
-            server.stop();
-        }
+        // TODO: Should program exit when any one of daemons exit?
+        server.waitForStop();
+        secureServer.waitForStop();
         return 0;
     }
 
