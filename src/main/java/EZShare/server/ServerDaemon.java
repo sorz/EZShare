@@ -4,7 +4,9 @@ import EZShare.entities.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -68,8 +70,11 @@ public class ServerDaemon implements ClientCommandHandler {
         LOGGER.info(String.format("bind on %s port %d",
                 isSecure() ?  "secure" : "", bindPort));
         if (isSecure()) {
-            serverSocket = SSLServerSocketFactory.getDefault()
-                    .createServerSocket(bindPort);
+            SSLServerSocket sslSocket =
+                    (SSLServerSocket) SSLServerSocketFactory.getDefault()
+                            .createServerSocket(bindPort);
+            sslSocket.setNeedClientAuth(true);
+            serverSocket = sslSocket;
         } else {
             serverSocket = new ServerSocket(bindPort);
         }
