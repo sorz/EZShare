@@ -15,8 +15,8 @@ public class Response {
     private static final String RESPONSE_ERROR = "error";
 
     private String response;
-    // Following line tell Jackson to ignore errorMessage on success response.
     private String errorMessage;
+    private String id;
 
     public String getResponse() {
         return response;
@@ -35,6 +35,15 @@ public class Response {
         this.errorMessage = errorMessage;
     }
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String getId() {
+        return id;
+    }
+
+    private void setId(String id) {
+        this.id = id;
+    }
+
     @JsonIgnore
     public boolean isSuccess() {
         return getResponse() != null && getResponse().toLowerCase().equals(RESPONSE_SUCCESS);
@@ -43,6 +52,14 @@ public class Response {
     @JsonCreator
     public static Response createSuccess() {
         Response response = new Response();
+        response.setResponse(RESPONSE_SUCCESS);
+        return response;
+    }
+
+    @JsonCreator
+    public static Response createSuccess(String id) {
+        Response response = new Response();
+        response.setId(id);
         response.setResponse(RESPONSE_SUCCESS);
         return response;
     }
