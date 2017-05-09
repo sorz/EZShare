@@ -33,37 +33,8 @@ public class MemoryResourceStorage implements ResourceStorage {
 
     @Override
     public Stream<Resource> templateQuery(Resource template) {
-        // tags comparision is case insensitive, change them to lower case here.
-        final Set<String> lowerCaseTags = template.getTags().stream()
-                .map(String::toLowerCase)
-                .collect(Collectors.toSet());
         return resources.values().stream()
-                // The template channel equals (case sensitive) the resource channel:
-                .filter(res -> res.getChannel().equals(template.getChannel()))
-                // If the template contains an owner that is not "",
-                // then the candidate owner must equal it (case sensitive):
-                .filter(res -> template.getOwner().isEmpty()
-                               || res.getOwner().equals(template.getOwner()))
-                // Any tags present in the template also are present in the candidate (case insensitive):
-                .filter(res -> res.getTags().stream().map(String::toLowerCase)
-                        .collect(Collectors.toSet()).containsAll(lowerCaseTags))
-                // If the template contains a URI then the candidate URI matches (case sensitive)
-                .filter(res -> template.getUri().isEmpty()
-                               || res.getUri().equals(template.getUri()))
-                .filter(res ->
-                        // The candidate name contains the template name as a substring
-                        // (for non "" template name)
-                        // TODO: case insensitive?
-                        (!template.getName().isEmpty()
-                                && res.getName().contains(template.getName())) ||
-                        // The candidate description contains the template description as a substring
-                        // (for non "" template descriptions)
-                        (!template.getDescription().isEmpty()
-                                && res.getDescription().contains(template.getDescription())) ||
-                        // The template description and name are both ""
-                        (template.getName().isEmpty()
-                                && template.getDescription().isEmpty())
-                );
+                .filter(res -> res.matchWithTemplate(template));
     }
 
 }

@@ -148,6 +148,46 @@ public class Resource {
                 + " " + SIZE_UNITS[digitGroups];
     }
 
+    /**
+     * Test this resource with template.
+     * @param template to match.
+     * @return whether it match with template.
+     */
+    public boolean matchWithTemplate(Resource template) {
+        // The template channel equals (case sensitive) the resource channel
+        if (!getChannel().equals(template.getChannel()))
+            return false;
+        // If the template contains an owner that is not "",
+        // then the candidate owner must equal it (case sensitive)
+        if ((!template.getOwner().isEmpty())
+                && (!getOwner().equals(template.getOwner())))
+            return false;
+        // Any tags present in the template also are present in the candidate (case insensitive):
+        if (!getTags().stream().map(String::toLowerCase)
+                .collect(Collectors.toSet()).containsAll(
+                        template.getTags().stream()
+                                .map(String::toLowerCase)
+                                .collect(Collectors.toSet())))
+            return false;
+        // If the template contains a URI then the candidate URI matches (case sensitive)
+        if (!(template.getUri().isEmpty() || getUri().equals(template.getUri())))
+            return false;
+        return (
+                // The candidate name contains the template name as a substring
+                // (for non "" template name)
+                // TODO: case insensitive?
+                (!template.getName().isEmpty()
+                        && getName().contains(template.getName())) ||
+                // The candidate description contains the template description as a substring
+                // (for non "" template descriptions)
+                (!template.getDescription().isEmpty()
+                        && getDescription().contains(template.getDescription())) ||
+                // The template description and name are both ""
+                (template.getName().isEmpty()
+                        && template.getDescription().isEmpty())
+        );
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
