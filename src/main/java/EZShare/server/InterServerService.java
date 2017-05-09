@@ -115,6 +115,10 @@ public class InterServerService implements Runnable {
             LOGGER.fine("exchange send successfully to " + server);
     }
 
+    synchronized Set<Server> getServers() {
+        return new HashSet<>(servers);
+    }
+
     /**
      * Add servers to the internal remote server list.
      * @param servers to add. Already exist server will be silently ignored.

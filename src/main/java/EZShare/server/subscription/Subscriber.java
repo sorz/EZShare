@@ -11,37 +11,41 @@ import java.util.function.Consumer;
  * Created by xierch on 2017/5/10.
  */
 public class Subscriber {
+    private final RelayService relayService;
     private final Consumer<Resource> subscriber;
-    private final Hashtable<String, Resource> subscriptions;
-    private final Hashtable<String, Integer> deliveryCount;
+    private final Hashtable<String, Subscription> subscriptions = new Hashtable<>();
 
-    Subscriber(Consumer<Resource> subscriber) {
+    Subscriber(RelayService relayService, Consumer<Resource> subscriber) {
+        this.relayService = relayService;
         this.subscriber = subscriber;
-        subscriptions = new Hashtable<>();
-        deliveryCount = new Hashtable<>();
     }
 
     public void subscribe(String id, Resource template) {
-        subscriptions.put(id, template);
+        subscribe(id, template, false);
     }
 
     public void subscribe(String id, Resource template, boolean relay) {
-        subscriptions.put(id, template);
-        if (relay) {
-            // TODO
-        }
+        Subscription subscription = new Subscription(template);
+        subscriptions.put(id, subscription);
+        if (relay)
+            subscription.relayId = relayService.subscribe(template);
     }
 
     public int unsubscribe(String id) {
-        subscriptions.remove(id);
-        int count = deliveryCount.getOrDefault(id, 0);
-        deliveryCount.remove(id);
-        return count;
+        Subscription s = subscriptions.remove(id);
+        if (s.relayId != null)
+            relayService.unsubscribe(s.relayId);
+        return s.count;
+    }
+
+    void unsubscribeAll() {
+        subscriptions.keySet().forEach(this::unsubscribe);
     }
 
     private boolean isDeliverable(Resource resource) {
         return subscriptions.entrySet().stream()
                 .map(Map.Entry::getValue)
+                .map(Subscription::getTemplate)
                 .anyMatch(resource::matchWithTemplate);
     }
 
@@ -50,9 +54,27 @@ public class Subscriber {
             return;
         subscriber.accept(resource);
         subscriptions.entrySet().stream()
-                .filter(entry -> resource.matchWithTemplate(entry.getValue()))
-                .map(Map.Entry::getKey)
-                .forEach(id -> deliveryCount.put(id,
-                        1 + deliveryCount.getOrDefault(id, 0)));
+                .map(Map.Entry::getValue)
+                .filter(s -> resource.matchWithTemplate(s.getTemplate()))
+                .forEach(Subscription::increaseCounter);
+    }
+
+
+    private static class Subscription {
+        Resource template;
+        int count;
+        String relayId;
+
+        Subscription(Resource template) {
+            this.template = template;
+        }
+
+        synchronized void increaseCounter() {
+            count += 1;
+        }
+
+        Resource getTemplate() {
+            return template;
+        }
     }
 }
