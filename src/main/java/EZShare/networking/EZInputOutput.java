@@ -8,7 +8,6 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.function.Consumer;
 import java.util.logging.Logger;
 
@@ -126,6 +125,15 @@ public class EZInputOutput {
         }
     }
 
+    public Result<Result.None> writeJSON(Object value) {
+        try {
+            sendJSON(value);
+        } catch (IOException e) {
+            return new Result<>(e);
+        }
+        return Result.of();
+    }
+
     /**
      * Read zero or more {@link Response} until {@link ResultSize} is read.
      * @param consumer accept read {@link Response}.
@@ -179,6 +187,10 @@ public class EZInputOutput {
 
     private DataOutputStream getOutputStream() {
         return outputStream;
+    }
+
+    public boolean isClosed() {
+        return socket.isClosed();
     }
 
     @Override
