@@ -1,14 +1,14 @@
 package EZShare.server.subscription;
 
-import EZShare.entities.Resource;
-import EZShare.entities.Server;
-import EZShare.entities.Subscription;
-import EZShare.entities.Unsubscribe;
+import EZShare.entities.*;
 import EZShare.networking.EZInputOutput;
 import EZShare.server.ServerDaemon;
+import com.fasterxml.jackson.databind.JsonMappingException;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -23,6 +23,9 @@ class SubscriptionRelayService implements RelayService {
     final private Consumer<Resource> updatedResourceConsumer;
     final private Hashtable<String, Set<Server>> subscribedServers = new Hashtable<>();
     final private Hashtable<Server, EZInputOutput> connections = new Hashtable<>();
+    final private ExecutorService executorService = Executors.newCachedThreadPool();
+
+    private boolean isRunning = true;
 
     SubscriptionRelayService(Supplier<Set<Server>> serverListSupplier,
                              Consumer<Resource> updatedResourceConsumer) {
@@ -69,7 +72,6 @@ class SubscriptionRelayService implements RelayService {
                 });
     }
 
-
     synchronized private EZInputOutput getConnection(Server server){
         if (connections.contains(server)) {
             EZInputOutput io = connections.get(server);
@@ -80,13 +82,70 @@ class SubscriptionRelayService implements RelayService {
         }
         EZInputOutput io;
         try {
-            io = new EZInputOutput(server);
+            io = new EZInputOutput(server, 0);
         } catch (IOException e) {
             LOGGER.fine(String.format(
                     "fail to connect with server %s: %s ", server, e));
             return null;
         }
         connections.put(server, io);
+        executorService.submit(() -> {
+           try {
+               handleSubscriptionConnection(server, io);
+           } catch (IOException e) {
+               LOGGER.fine(String.format(
+                       "error on handle subscription connection with %s: %s",
+                       server, io));
+               connections.remove(server);
+           }
+        });
         return io;
+    }
+
+    private void handleSubscriptionConnection(Server server, EZInputOutput io)
+            throws IOException {
+        while (isRunning) {
+            // try to read updated resource:
+            try {
+                Resource resource = io.readJSON(Resource.class);
+                updatedResourceConsumer.accept(resource);
+                continue;
+            } catch (JsonMappingException e) {
+                // ignore
+            }
+            // try to read response (success or error)
+            Response response;
+            try {
+                response = io.readResponse();
+            } catch (JsonMappingException e) {
+                LOGGER.info("unexpected message read from subscription " +
+                        "connection with " + server + ", ignored.");
+                continue;
+            }
+            if (response.isSuccess()) {
+                String id = response.getId();
+                if (id == null || id.isEmpty()) {
+                    LOGGER.info("blank id found on response from " + server);
+                    continue;
+                }
+                synchronized (subscribedServers) {
+                    if (subscribedServers.contains(id)) {
+                        subscribedServers.get(id).add(server);
+                        LOGGER.fine(id + " subscribed with " + server);
+                    } else {
+                        LOGGER.info(String.format("subscription '%s' not exist", id));
+                    }
+                }
+            } else {
+                LOGGER.info("operation fail on subscription with server " +
+                        server + ": " + response.getErrorMessage());
+            }
+        }
+    }
+
+    public void stop() {
+        isRunning = false;
+        executorService.shutdownNow();
+        connections.values().forEach(EZInputOutput::close);
     }
 }
