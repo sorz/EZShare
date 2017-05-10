@@ -18,6 +18,7 @@ public class SubscriptionService {
 
     final private Set<Subscriber> subscribers = new HashSet<>();
     final private SubscriptionRelayService relayService;
+    // TODO: share thread pool with ServerDaemon
     private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD);
 
 

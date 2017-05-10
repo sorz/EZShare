@@ -1,6 +1,7 @@
 package EZShare.server;
 
 import EZShare.entities.*;
+import EZShare.server.subscription.SubscriptionService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -31,6 +32,7 @@ public class ServerDaemon implements ClientCommandHandler {
     private final ServerOptions options;
     private final ExecutorService executorService = Executors.newCachedThreadPool();
     private final InterServerService interServerService;
+    private final SubscriptionService subscriptionService;
     private final ResourceStorage resourceStorage;
     private ServerSocket serverSocket;
     private final boolean secure;
@@ -46,6 +48,7 @@ public class ServerDaemon implements ClientCommandHandler {
         interServerService = new InterServerService(
                 options.getHostname(), options.getPort(),
                 options.getExchangeInterval() * 1000);
+        subscriptionService = new SubscriptionService(interServerService::getServers);
     }
 
     public ServerDaemon(ServerOptions options, ResourceStorage resourceStorage) {

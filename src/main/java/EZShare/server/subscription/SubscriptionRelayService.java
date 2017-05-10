@@ -23,6 +23,7 @@ class SubscriptionRelayService implements RelayService {
     final private Consumer<Resource> updatedResourceConsumer;
     final private Hashtable<String, Set<Server>> subscribedServers = new Hashtable<>();
     final private Hashtable<Server, EZInputOutput> connections = new Hashtable<>();
+    // TODO: share thread pool with SubscriptionService
     final private ExecutorService executorService = Executors.newCachedThreadPool();
 
     private boolean isRunning = true;
