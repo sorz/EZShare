@@ -125,15 +125,6 @@ public class EZInputOutput {
         }
     }
 
-    public Result<Result.None> writeJSON(Object value) {
-        try {
-            sendJSON(value);
-        } catch (IOException e) {
-            return new Result<>(e);
-        }
-        return Result.of();
-    }
-
     /**
      * Read zero or more {@link Response} until {@link ResultSize} is read.
      * @param consumer accept read {@link Response}.
@@ -191,6 +182,10 @@ public class EZInputOutput {
 
     public boolean isClosed() {
         return socket.isClosed();
+    }
+
+    public boolean isOpened() {
+        return !isClosed();
     }
 
     @Override
