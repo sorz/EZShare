@@ -37,7 +37,7 @@ public class Subscriber {
         return s.count;
     }
 
-    void unsubscribeAll() {
+    public void unsubscribeAll() {
         subscriptions.keySet().forEach(this::unsubscribe);
     }
 

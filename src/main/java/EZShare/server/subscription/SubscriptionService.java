@@ -22,9 +22,12 @@ public class SubscriptionService {
     private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD);
 
 
-    public SubscriptionService(Supplier<Set<Server>> serverListSupplier) {
-        relayService = new SubscriptionRelayService(
-                serverListSupplier, this::notifyUpdatedResource);
+    public SubscriptionService() {
+        relayService = new SubscriptionRelayService(this::notifyUpdatedResource);
+    }
+
+    public void updateServerList(Set<Server> servers) {
+        relayService.updateServerList(servers);
     }
 
     public Subscriber addSubscriber(Consumer<Resource> consumer) {

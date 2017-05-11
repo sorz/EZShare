@@ -33,6 +33,7 @@ public class InterServerService implements Runnable {
     private final Set<Server> servers = new HashSet<>();
     private final Server localServer;
     private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_QUERY_THREAD);
+    private Consumer<Set<Server>> serverListUpdatedCallback;
 
     private long exchangeIntervalMillis;
     private boolean isRunning;
@@ -115,8 +116,8 @@ public class InterServerService implements Runnable {
             LOGGER.fine("exchange send successfully to " + server);
     }
 
-    synchronized Set<Server> getServers() {
-        return new HashSet<>(servers);
+    void setServerListUpdatedCallback(Consumer<Set<Server>> callback) {
+        serverListUpdatedCallback = callback;
     }
 
     /**
@@ -127,10 +128,13 @@ public class InterServerService implements Runnable {
         Set<Server> serverSet = new HashSet<>(servers);
         serverSet.remove(localServer);
         synchronized (this.servers) {
-            if (this.servers.addAll(serverSet))
+            if (this.servers.addAll(serverSet)) {
                 LOGGER.info("server list updated");
-            else
+                if (serverListUpdatedCallback != null)
+                    serverListUpdatedCallback.accept(new HashSet<>(this.servers));
+            } else {
                 LOGGER.fine("server list kept no changed");
+            }
         }
     }
 

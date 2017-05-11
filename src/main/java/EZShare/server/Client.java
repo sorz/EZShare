@@ -131,26 +131,31 @@ class Client implements Runnable {
         Subscriber subscriber = null;
         // disable timeout since we are in persistent connection.
         io.setTimeout(0);
-        while (true) {
-            switch (cmd.getCMD()) {
-                case SUBSCRIPTION:
-                    if (subscriber == null)
-                        subscriber = commandHandler
-                                .doSubscription((Subscription) cmd, io::uncheckedSendJSON);
-                    else
-                        commandHandler.doSubscription((Subscription) cmd, subscriber);
-                    break;
-                case UNSUBSCRIBE:
-                    int count = subscriber == null ? 0 :
-                            commandHandler.doUnsubscribe((Unsubscribe) cmd, subscriber);
-                    io.sendJSON(new ResultSize(count));
-                    break;
-                default:
-                    LOGGER.info("unexpected command: " + cmd.getCMD());
-                    throw new CommandHandleException(
-                            "unexpected command in persistent connection");
+        try {
+            while (true) {
+                switch (cmd.getCMD()) {
+                    case SUBSCRIPTION:
+                        if (subscriber == null)
+                            subscriber = commandHandler
+                                    .doSubscription((Subscription) cmd, io::uncheckedSendJSON);
+                        else
+                            commandHandler.doSubscription((Subscription) cmd, subscriber);
+                        break;
+                    case UNSUBSCRIBE:
+                        int count = subscriber == null ? 0 :
+                                commandHandler.doUnsubscribe((Unsubscribe) cmd, subscriber);
+                        io.sendJSON(new ResultSize(count));
+                        break;
+                    default:
+                        LOGGER.info("unexpected command: " + cmd.getCMD());
+                        throw new CommandHandleException(
+                                "unexpected command in persistent connection");
+                }
+                cmd = io.readCommand();
             }
-            cmd = io.readCommand();
+        } finally {
+            if (subscriber != null)
+                subscriber.unsubscribeAll();
         }
     }
 
