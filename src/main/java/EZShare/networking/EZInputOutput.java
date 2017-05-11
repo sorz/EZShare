@@ -45,9 +45,12 @@ public class EZInputOutput {
         this(server, DEFAULT_SOCKET_TIMEOUT);
     }
 
-
     public void close() {
         IOUtils.closeQuietly(getSocket());
+    }
+
+    public void setTimeout(int millis) throws IOException {
+        socket.setSoTimeout(millis);
     }
 
     /**

@@ -3,7 +3,6 @@ package EZShare.server.subscription;
 import EZShare.entities.Resource;
 
 import java.util.Hashtable;
-import java.util.Map;
 import java.util.function.Consumer;
 
 /**
@@ -43,8 +42,7 @@ public class Subscriber {
     }
 
     private boolean isDeliverable(Resource resource) {
-        return subscriptions.entrySet().stream()
-                .map(Map.Entry::getValue)
+        return subscriptions.values().stream()
                 .map(Subscription::getTemplate)
                 .anyMatch(resource::matchWithTemplate);
     }
@@ -53,8 +51,7 @@ public class Subscriber {
         if (!isDeliverable(resource))
             return;
         subscriber.accept(resource);
-        subscriptions.entrySet().stream()
-                .map(Map.Entry::getValue)
+        subscriptions.values().stream()
                 .filter(s -> resource.matchWithTemplate(s.getTemplate()))
                 .forEach(Subscription::increaseCounter);
     }

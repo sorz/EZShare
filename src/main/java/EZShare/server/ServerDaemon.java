@@ -1,6 +1,7 @@
 package EZShare.server;
 
 import EZShare.entities.*;
+import EZShare.server.subscription.Subscriber;
 import EZShare.server.subscription.SubscriptionService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -182,7 +183,7 @@ public class ServerDaemon implements ClientCommandHandler {
      * @throws CommandHandleException when command's resource is null, blank
      * or invalid URI, "*" as resource owner.
      */
-    private Resource verifyThenGetResource(CommandWithResource command)
+    static private Resource verifyThenGetResource(CommandWithResource command)
             throws CommandHandleException {
         Resource resource = command.getResource();
         if (resource == null)
@@ -198,6 +199,16 @@ public class ServerDaemon implements ClientCommandHandler {
         }
         resource.setUri(uri.toString());
         return resource;
+    }
+
+    static private Resource verifyThenGetTemplate(CommandWithResourceTemplate command)
+            throws CommandHandleException {
+        Resource template = command.getResourceTemplate();
+        if (template == null)
+            throw new CommandHandleException("missing resourceTemplate");
+        if (template.getNormalizedUri() != null)
+            template.setUri(template.getNormalizedUri().toString());
+        return template;
     }
 
     @Override
@@ -217,6 +228,7 @@ public class ServerDaemon implements ClientCommandHandler {
             LOGGER.fine(String.format("new resource (%s, %s) published.",
                     resource.getChannel(), uri));
         }
+        subscriptionService.notifyUpdatedResource(resource);
     }
 
     @Override
@@ -260,16 +272,13 @@ public class ServerDaemon implements ClientCommandHandler {
             LOGGER.fine(String.format("new resource (%s, %s) shared.",
                     resource.getChannel(), uri));
         }
+        subscriptionService.notifyUpdatedResource(resource);
     }
 
     @Override
     public int doQuery(Query cmd, Consumer<Void> ok, Consumer<Resource> consumer)
             throws CommandHandleException {
-        Resource template = cmd.getResourceTemplate();
-        if (template == null)
-            throw new CommandHandleException("missing resourceTemplate");
-        if (template.getNormalizedUri() != null)
-            template.setUri(template.getNormalizedUri().toString());
+        Resource template = verifyThenGetTemplate(cmd);
         // Tell caller the command is valid and we are ready to send resources.
         ok.accept(null);
 
@@ -343,6 +352,32 @@ public class ServerDaemon implements ClientCommandHandler {
         if (!cmd.getServerList().stream().allMatch(Server::isValid))
             throw new CommandHandleException("invalid server record found");
         interServerService.addServers(cmd.getServerList());
+    }
+
+    @Override
+    public Subscriber doSubscription(Subscription cmd, Consumer<Resource> consumer)
+            throws CommandHandleException {
+        Subscriber subscriber = subscriptionService.addSubscriber(consumer);
+        try {
+            doSubscription(cmd, subscriber);
+            return subscriber;
+        } catch (CommandHandleException e) {
+            subscriptionService.removeSubscriber(subscriber);
+            throw e;
+        }
+    }
+
+    @Override
+    public void doSubscription(Subscription cmd, Subscriber subscriber)
+            throws CommandHandleException {
+        Resource template = verifyThenGetTemplate(cmd);
+        subscriber.subscribe(cmd.getId(), template, cmd.isRelay());
+    }
+
+    @Override
+    public int doUnsubscribe(Unsubscribe cmd, Subscriber subscriber)
+            throws CommandHandleException {
+        return subscriber.unsubscribe(cmd.getId());
     }
 
     private static class Counter<T> {

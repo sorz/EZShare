@@ -2,6 +2,7 @@ package EZShare.server;
 
 import EZShare.entities.*;
 import EZShare.networking.EZInputOutput;
+import EZShare.server.subscription.Subscriber;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import org.apache.commons.io.IOUtils;
@@ -110,6 +111,12 @@ class Client implements Runnable {
                     commandHandler.doExchange((Exchange) command);
                     io.sendJSON(Response.createSuccess());
                     break;
+                case SUBSCRIPTION:
+                case UNSUBSCRIBE:
+                    // These two commands is long-live connection.
+                    // We handle it in separated method.
+                    handleSubscription(command);
+                    break;
             }
         } catch (CommandHandleException e) {
             LOGGER.info(String.format("Fail to handle command %s: %s",
@@ -117,6 +124,33 @@ class Client implements Runnable {
             io.sendJSON(Response.createError(e.getMessage()));
         } catch (UncheckedIOException e) {
             throw e.getCause();
+        }
+    }
+
+    private void handleSubscription(Command cmd) throws IOException, CommandHandleException {
+        Subscriber subscriber = null;
+        // disable timeout since we are in persistent connection.
+        io.setTimeout(0);
+        while (true) {
+            switch (cmd.getCMD()) {
+                case SUBSCRIPTION:
+                    if (subscriber == null)
+                        subscriber = commandHandler
+                                .doSubscription((Subscription) cmd, io::uncheckedSendJSON);
+                    else
+                        commandHandler.doSubscription((Subscription) cmd, subscriber);
+                    break;
+                case UNSUBSCRIBE:
+                    int count = subscriber == null ? 0 :
+                            commandHandler.doUnsubscribe((Unsubscribe) cmd, subscriber);
+                    io.sendJSON(new ResultSize(count));
+                    break;
+                default:
+                    LOGGER.info("unexpected command: " + cmd.getCMD());
+                    throw new CommandHandleException(
+                            "unexpected command in persistent connection");
+            }
+            cmd = io.readCommand();
         }
     }
 

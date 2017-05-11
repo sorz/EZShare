@@ -1,6 +1,7 @@
 package EZShare.server;
 
 import EZShare.entities.*;
+import EZShare.server.subscription.Subscriber;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.InputStream;
@@ -19,4 +20,10 @@ public interface ClientCommandHandler {
             throws CommandHandleException;
     Pair<Resource, InputStream> doFetch(Fetch cmd) throws CommandHandleException;
     void doExchange(Exchange cmd) throws CommandHandleException;
+    Subscriber doSubscription(Subscription cmd, Consumer<Resource> consumer)
+            throws CommandHandleException;
+    void doSubscription(Subscription cmd, Subscriber subscriber)
+            throws CommandHandleException;
+    int doUnsubscribe(Unsubscribe cmd, Subscriber subscriber)
+            throws CommandHandleException;
 }
