@@ -63,7 +63,7 @@ public class Client extends CLILauncher<ClientOptions> {
         Option tags = new Option("tags", true, "resource tags, tag1,tag2,tag3,...");
         Option uri = new Option("uri", true, "resource URI");
         Option secure = new Option("secure", "make a secure connection");
-
+        Option subscribe = new Option("subscribe", "subscribe for resources from server");
         port.setType(Number.class);
 
         options.addOption(channel);
@@ -83,6 +83,7 @@ public class Client extends CLILauncher<ClientOptions> {
         options.addOption(tags);
         options.addOption(uri);
         options.addOption(secure);
+        options.addOption(subscribe);
         return options;
     }
 
@@ -172,6 +173,7 @@ public class Client extends CLILauncher<ClientOptions> {
                     throw new ParseException("URI must be a file://.");
                 break;
             case QUERY:
+            case SUBSCRIBE:
                 break;
             case EXCHANGE:
                 if (options.getServers() == null)
