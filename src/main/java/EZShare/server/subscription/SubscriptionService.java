@@ -48,6 +48,9 @@ public class SubscriptionService {
         );
     }
 
-
+    public void stop() {
+        relayService.stop();
+        executorService.shutdownNow();
+    }
 
 }

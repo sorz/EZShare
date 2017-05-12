@@ -20,7 +20,7 @@ class SubscriptionRelayService implements RelayService {
 
     final private Consumer<Resource> updatedResourceConsumer;
     final private Hashtable<Server, EZInputOutput> connections = new Hashtable<>();
-    final private Hashtable<String, Subscription> subscriptions = new Hashtable<>();
+    final private Hashtable<String, Subscribe> subscriptions = new Hashtable<>();
     // TODO: share thread pool with SubscriptionService
     final private ExecutorService executorService = Executors.newCachedThreadPool();
     private Set<Server> servers = new HashSet<>();
@@ -33,11 +33,11 @@ class SubscriptionRelayService implements RelayService {
 
     @Override
     public String subscribe(Resource template) {
-        Subscription subscription = new Subscription(template, false);
-        subscriptions.put(subscription.getId(), subscription);
+        Subscribe subscribe = new Subscribe(template, false);
+        subscriptions.put(subscribe.getId(), subscribe);
         connections.values().forEach(server -> {
             try {
-                server.sendJSON(subscription);
+                server.sendJSON(subscribe);
             } catch (IOException e) {
                 LOGGER.fine(String.format(
                         "fail to subscribe with %s: %s", server, e));
@@ -46,7 +46,7 @@ class SubscriptionRelayService implements RelayService {
         if (connections.isEmpty() && !servers.isEmpty())
             // we're the first one to subscribe.
             connectWithAllServers();
-        return subscription.getId();
+        return subscribe.getId();
     }
 
     @Override

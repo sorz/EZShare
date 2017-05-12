@@ -8,7 +8,6 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -158,6 +157,7 @@ public class ServerDaemon implements ClientCommandHandler {
         LOGGER.info("stopping " + this);
         isRunning = false;
         interServerService.stop();
+        subscriptionService.stop();
         IOUtils.closeQuietly(serverSocket);
     }
 
@@ -356,7 +356,7 @@ public class ServerDaemon implements ClientCommandHandler {
     }
 
     @Override
-    public Subscriber doSubscription(Subscription cmd, Consumer<Resource> consumer)
+    public Subscriber doSubscription(Subscribe cmd, Consumer<Resource> consumer)
             throws CommandHandleException {
         Subscriber subscriber = subscriptionService.addSubscriber(consumer);
         try {
@@ -369,7 +369,7 @@ public class ServerDaemon implements ClientCommandHandler {
     }
 
     @Override
-    public void doSubscription(Subscription cmd, Subscriber subscriber)
+    public void doSubscription(Subscribe cmd, Subscriber subscriber)
             throws CommandHandleException {
         Resource template = verifyThenGetTemplate(cmd);
         subscriber.subscribe(cmd.getId(), template, cmd.isRelay());

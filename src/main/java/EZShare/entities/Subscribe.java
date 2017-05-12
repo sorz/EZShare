@@ -8,13 +8,13 @@ import java.util.UUID;
 /**
  * Created on 2017/5/10.
  */
-public class Subscription extends CommandWithResourceTemplate {
+public class Subscribe extends CommandWithResourceTemplate {
     private final boolean relay;
     private final String id;
 
     @JsonCreator
-    public Subscription(@JsonProperty("resourceTemplate") Resource resourceTemplate,
-                        @JsonProperty("relay") boolean relay) {
+    public Subscribe(@JsonProperty("resourceTemplate") Resource resourceTemplate,
+                     @JsonProperty("relay") boolean relay) {
         super(resourceTemplate);
         this.relay = relay;
         id = UUID.randomUUID().toString();
@@ -22,7 +22,7 @@ public class Subscription extends CommandWithResourceTemplate {
 
     @Override
     public CMD getCMD() {
-        return CMD.SUBSCRIPTION;
+        return CMD.SUBSCRIBE;
     }
 
     public String getId() {

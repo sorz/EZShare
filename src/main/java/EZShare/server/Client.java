@@ -5,12 +5,10 @@ import EZShare.networking.EZInputOutput;
 import EZShare.server.subscription.Subscriber;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.List;
 import java.util.logging.Logger;
 
 /**
@@ -111,7 +109,7 @@ class Client implements Runnable {
                     commandHandler.doExchange((Exchange) command);
                     io.sendJSON(Response.createSuccess());
                     break;
-                case SUBSCRIPTION:
+                case SUBSCRIBE:
                 case UNSUBSCRIBE:
                     // These two commands is long-live connection.
                     // We handle it in separated method.
@@ -132,14 +130,15 @@ class Client implements Runnable {
         // disable timeout since we are in persistent connection.
         io.setTimeout(0);
         try {
+            // noinspection InfiniteLoopStatement
             while (true) {
                 switch (cmd.getCMD()) {
-                    case SUBSCRIPTION:
+                    case SUBSCRIBE:
                         if (subscriber == null)
                             subscriber = commandHandler
-                                    .doSubscription((Subscription) cmd, io::uncheckedSendJSON);
+                                    .doSubscription((Subscribe) cmd, io::uncheckedSendJSON);
                         else
-                            commandHandler.doSubscription((Subscription) cmd, subscriber);
+                            commandHandler.doSubscription((Subscribe) cmd, subscriber);
                         break;
                     case UNSUBSCRIBE:
                         int count = subscriber == null ? 0 :

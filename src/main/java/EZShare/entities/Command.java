@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.annotation.JsonTypeIdResolver;
 @JsonTypeIdResolver(CommandTypeIdResolver.class)
 public abstract class Command {
     public enum CMD {
-        PUBLISH, REMOVE, SHARE, QUERY, FETCH, EXCHANGE, SUBSCRIPTION, UNSUBSCRIBE
+        PUBLISH, REMOVE, SHARE, QUERY, FETCH, EXCHANGE, SUBSCRIBE, UNSUBSCRIBE
     }
 
     @JsonIgnore
