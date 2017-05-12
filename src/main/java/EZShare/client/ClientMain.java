@@ -72,35 +72,38 @@ public class ClientMain {
                         throw new IllegalStateException("Unknown command");
                 }
             }
-            Response response = client.sendCommand(cmdToSend);
+            client.io.sendJSON(cmdToSend);
+            Response response = client.io.readResponse();
             // TODO: better format of output
             System.out.println(response);
             if (!response.isSuccess())
                 return;
 
             if (cmdToSend instanceof Query) {
-                int size = client.readResources(System.out::println);
+                int size = client.io.readResources(System.out::println);
                 if (size == 0)
                     System.out.println("No resource found.");
                 else
                     System.out.printf("%s resource(s) found in total.\n", size);
+
             } else if (cmdToSend instanceof Subscribe) {
                 String id = ((Subscribe) cmdToSend).getId();
                 new Thread(() -> {
                     System.out.printf("Press ENTER to stop.");
                     new Scanner(System.in).nextLine();
                     try {
-                        client.sendCommand(new Unsubscribe(id));
+                        client.io.sendJSON(new Unsubscribe(id));
                     } catch (IOException e) {
                         LOGGER.warning("I/O error: " + e);
                         System.exit(2);
                     }
-                }).run();
-                client.disableTimeout();
-                int size = client.readResources(System.out::println);
+                }).start();
+                client.io.setTimeout(0);
+                int size = client.io.readResources(System.out::println);
                 System.out.printf("%s resource(s) received in total.\n", size);
+
             } else if (cmdToSend instanceof Fetch) {
-                Resource resource = client.readResource();
+                Resource resource = client.io.readJSON(Resource.class);
                 System.out.println(resource);
                 // Try to derive a filename from URI or resource name.
                 String filename = getFilenameFromURI(resource.getUri());
@@ -123,23 +126,6 @@ public class ClientMain {
         } finally {
             client.close();
         }
-    }
-
-    private Response sendCommand(Command command) throws IOException {
-        io.sendJSON(command);
-        return io.readResponse();
-    }
-
-    private int readResources(Consumer<Resource> consumer) throws IOException {
-        return io.readResources(consumer);
-    }
-
-    private Resource readResource() throws IOException {
-        return io.readJSON(Resource.class);
-    }
-
-    private void disableTimeout() throws IOException {
-        io.setTimeout(0);
     }
 
     private long readToFile(Path path, long size) throws IOException {

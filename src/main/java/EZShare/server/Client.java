@@ -134,11 +134,13 @@ class Client implements Runnable {
             while (true) {
                 switch (cmd.getCMD()) {
                     case SUBSCRIBE:
+                        Subscribe subCmd = (Subscribe) cmd;
                         if (subscriber == null)
                             subscriber = commandHandler
-                                    .doSubscription((Subscribe) cmd, io::uncheckedSendJSON);
+                                    .doSubscription(subCmd, io::uncheckedSendJSON);
                         else
-                            commandHandler.doSubscription((Subscribe) cmd, subscriber);
+                            commandHandler.doSubscription(subCmd, subscriber);
+                        io.sendJSON(Response.createSuccess(subCmd.getId()));
                         break;
                     case UNSUBSCRIBE:
                         int count = subscriber == null ? 0 :

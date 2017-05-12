@@ -109,7 +109,7 @@ public class EZInputOutput {
      */
     public void sendJSON(Object value) throws IOException {
         String jsonString = mapper.writeValueAsString(value);
-        LOGGER.fine("send:" + jsonString);
+        LOGGER.fine("send: " + jsonString);
         getOutputStream().writeUTF(jsonString);
         getOutputStream().flush();
     }
