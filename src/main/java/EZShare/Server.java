@@ -1,5 +1,6 @@
 package EZShare;
 
+import EZShare.networking.SecuritySetupException;
 import EZShare.server.MemoryResourceStorage;
 import EZShare.server.ResourceStorage;
 import EZShare.server.ServerDaemon;
@@ -38,8 +39,10 @@ public class Server extends CLILauncher<ServerOptions> {
         try {
             server.startInBackground();
             secureServer.startInBackground();
-        } catch (IOException e) {
+        } catch (IOException | SecuritySetupException e) {
             LOGGER.log(Level.SEVERE,"failed to start server: " + e);
+            if (e.getCause() != null)
+                LOGGER.info("due to: " + e.getCause());
             return -2;
         }
         // TODO: Should program exit when any one of daemons exit?

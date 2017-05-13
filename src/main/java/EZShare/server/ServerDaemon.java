@@ -1,11 +1,14 @@
 package EZShare.server;
 
 import EZShare.entities.*;
+import EZShare.networking.SecurityHelper;
+import EZShare.networking.SecuritySetupException;
 import EZShare.server.subscription.Subscriber;
 import EZShare.server.subscription.SubscriptionService;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import java.io.*;
@@ -69,13 +72,15 @@ public class ServerDaemon implements ClientCommandHandler {
     /**
      * Bind to port.
      * @throws IOException if failed to bind the port.
+     * @throws SecuritySetupException if failed to setup SSL.
      */
-    public void start() throws IOException {
+    private void start() throws IOException, SecuritySetupException {
         LOGGER.info(String.format("bind on %s port %d",
                 isSecure() ?  "secure" : "", bindPort));
         if (isSecure()) {
             SSLServerSocket sslSocket =
-                    (SSLServerSocket) SSLServerSocketFactory.getDefault()
+                    (SSLServerSocket) SecurityHelper.getSSLContext()
+                            .getServerSocketFactory()
                             .createServerSocket(bindPort);
             sslSocket.setNeedClientAuth(true);
             serverSocket = sslSocket;
@@ -86,7 +91,7 @@ public class ServerDaemon implements ClientCommandHandler {
         executorService.submit(interServerService);
     }
 
-    public void startInBackground() throws IOException {
+    public void startInBackground() throws IOException, SecuritySetupException {
         start();
         executorService.submit(() -> {
            try {
