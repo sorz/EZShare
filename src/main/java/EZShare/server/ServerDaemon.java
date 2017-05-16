@@ -79,7 +79,8 @@ public class ServerDaemon implements ClientCommandHandler {
                 isSecure() ?  "secure" : "", bindPort));
         if (isSecure()) {
             SSLServerSocket sslSocket =
-                    (SSLServerSocket) SecurityHelper.getSSLContext()
+                    (SSLServerSocket) SecurityHelper.getServer()
+                            .getSSLContext()
                             .getServerSocketFactory()
                             .createServerSocket(bindPort);
             sslSocket.setNeedClientAuth(true);

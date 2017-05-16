@@ -15,12 +15,28 @@ import java.util.logging.Logger;
  */
 public class SecurityHelper {
     static final private Logger LOGGER = Logger.getLogger(Server.class.getName());
-    static final private String STORE_FILENAME = "keystore";
+    static final private String STORE_FILENAME_CLIENT = "keystore-client";
+    static final private String STORE_FILENAME_SERVER = "keystore-server";
     static final private String STORE_FILENAME_TEST = "keystore-debug";
     static final private char[] STORE_PASSWORD = "comp90015".toCharArray();
 
-    private static InputStream getStoreInputStream() throws IOException {
-        InputStream input = SecurityHelper.class.getResourceAsStream(STORE_FILENAME);
+    private final boolean isClient;
+
+    private SecurityHelper(boolean isClient) {
+        this.isClient = isClient;
+    }
+
+    public static SecurityHelper getClient() {
+        return new SecurityHelper(true);
+    }
+
+    public static SecurityHelper getServer() {
+        return new SecurityHelper(false);
+    }
+
+    private InputStream getStoreInputStream() throws IOException {
+        InputStream input = SecurityHelper.class
+                .getResourceAsStream(isClient ? STORE_FILENAME_CLIENT : STORE_FILENAME_SERVER);
         if (input == null) {
             input = SecurityHelper.class.getResourceAsStream(STORE_FILENAME_TEST);
             if (input == null)
@@ -31,7 +47,7 @@ public class SecurityHelper {
         return input;
     }
 
-    private static KeyStore getKeyStore() throws KeyStoreException, IOException,
+    private KeyStore getKeyStore() throws KeyStoreException, IOException,
             CertificateException, NoSuchAlgorithmException {
         KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         try (InputStream input = getStoreInputStream()) {
@@ -40,7 +56,7 @@ public class SecurityHelper {
         return keyStore;
     }
 
-    private static KeyManager[] getKeyManagers(KeyStore keyStore)
+    private KeyManager[] getKeyManagers(KeyStore keyStore)
             throws NoSuchAlgorithmException, KeyStoreException,
             IOException, CertificateException, UnrecoverableKeyException {
         KeyManagerFactory keyFactory =
@@ -49,7 +65,7 @@ public class SecurityHelper {
         return keyFactory.getKeyManagers();
     }
 
-    private static TrustManager[] getTrustManager(KeyStore trustStore)
+    private TrustManager[] getTrustManager(KeyStore trustStore)
             throws NoSuchAlgorithmException, KeyStoreException {
         TrustManagerFactory trustFactory =
                 TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -57,7 +73,7 @@ public class SecurityHelper {
         return trustFactory.getTrustManagers();
     }
 
-    public static SSLContext getSSLContext() throws SecuritySetupException {
+    public SSLContext getSSLContext() throws SecuritySetupException {
         try {
             KeyStore keyStore = getKeyStore();
             KeyManager keyManagers[] = getKeyManagers(keyStore);

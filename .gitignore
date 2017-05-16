@@ -85,3 +85,5 @@ hs_err_pid*
 /pki/
 .idea/artifacts/
 .idea/inspectionProfiles/
+/src/main/resources/EZShare/networking/keystore-server
+/src/main/resources/EZShare/networking/keystore-client
