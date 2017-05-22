@@ -37,12 +37,25 @@ public class EZInputOutput {
         this(socket, DEFAULT_SOCKET_TIMEOUT);
     }
 
-    public EZInputOutput(Server server, int timeout) throws IOException {
-        this(new Socket(server.getHostname(), server.getPort()), timeout);
+    public EZInputOutput(Server server, boolean secure, int timeout) throws IOException {
+        if (secure) {
+            try {
+                socket = SecurityHelper.getClient()
+                        .getSSLContext().getSocketFactory()
+                        .createSocket(server.getHostname(), server.getPort());
+            } catch (SecuritySetupException e) {
+                throw new IOException(e);
+            }
+        } else {
+            socket = new Socket(server.getHostname(), server.getPort());
+        }
+        socket.setSoTimeout(timeout);
+        inputStream = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+        outputStream = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
-    public EZInputOutput(Server server) throws IOException {
-        this(server, DEFAULT_SOCKET_TIMEOUT);
+    public EZInputOutput(Server server, boolean secure) throws IOException {
+        this(server, secure, DEFAULT_SOCKET_TIMEOUT);
     }
 
     public void close() {
