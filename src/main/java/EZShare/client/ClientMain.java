@@ -87,7 +87,7 @@ public class ClientMain {
             } else if (cmdToSend instanceof Subscribe) {
                 String id = ((Subscribe) cmdToSend).getId();
                 new Thread(() -> {
-                    System.out.println("Press ENTER to stop.");
+                    System.out.println("Press ENTER to stop.\n");
                     new Scanner(System.in).nextLine();
                     try {
                         client.io.sendJSON(new Unsubscribe(id));

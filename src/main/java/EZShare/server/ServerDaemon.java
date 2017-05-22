@@ -49,7 +49,7 @@ public class ServerDaemon implements ClientCommandHandler {
         bindPort = isSecure ? options.getSport() : options.getPort();
         this.resourceStorage = resourceStorage;
         interServerService = new InterServerService(
-                options.getHostname(), options.getPort(), secure,
+                options.getHostname(), bindPort, secure,
                 options.getExchangeInterval() * 1000);
         subscriptionService = new SubscriptionService(secure);
         interServerService.setServerListUpdatedCallback(subscriptionService::updateServerList);
@@ -176,7 +176,7 @@ public class ServerDaemon implements ClientCommandHandler {
     private Resource copyAsAnonymousResource(Resource resource) {
         Resource newResource = new Resource(resource);
         newResource.setEzserver(String.format("%s:%d",
-                options.getHostname(), options.getPort()));
+                options.getHostname(), bindPort));
         if (!resource.getOwner().isEmpty())
             newResource.setOwner("*");
         return newResource;
