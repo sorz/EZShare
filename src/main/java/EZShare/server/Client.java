@@ -154,6 +154,8 @@ class Client implements Runnable {
                 }
                 cmd = io.readCommand();
             }
+        } catch (EOFException e) {
+            LOGGER.fine("EoF reached, unsubscribe all.");
         } finally {
             if (subscriber != null)
                 subscriber.unsubscribeAll();
