@@ -21,14 +21,16 @@ class SubscriptionRelayService implements RelayService {
     final private Consumer<Resource> updatedResourceConsumer;
     final private Hashtable<Server, EZInputOutput> connections = new Hashtable<>();
     final private Hashtable<String, Subscribe> subscriptions = new Hashtable<>();
+    final private boolean secure;
     // TODO: share thread pool with SubscriptionService
     final private ExecutorService executorService = Executors.newCachedThreadPool();
     private Set<Server> servers = new HashSet<>();
 
     private boolean isRunning = true;
 
-    SubscriptionRelayService(Consumer<Resource> updatedResourceConsumer) {
+    SubscriptionRelayService(Consumer<Resource> updatedResourceConsumer, boolean isSecure) {
         this.updatedResourceConsumer = updatedResourceConsumer;
+        secure = isSecure;
     }
 
     @Override
@@ -76,7 +78,7 @@ class SubscriptionRelayService implements RelayService {
     private void connectWithNewServer(Server server) {
         EZInputOutput io;
         try {
-            io = new EZInputOutput(server, 0);
+            io = new EZInputOutput(server, secure, 0);
         } catch (IOException e) {
             LOGGER.fine(String.format(
                     "fail to connect with server %s: %s ", server, e));

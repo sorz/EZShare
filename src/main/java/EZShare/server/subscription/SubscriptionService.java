@@ -22,8 +22,8 @@ public class SubscriptionService {
     private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_THREAD);
 
 
-    public SubscriptionService() {
-        relayService = new SubscriptionRelayService(this::notifyUpdatedResource);
+    public SubscriptionService(boolean isSecure) {
+        relayService = new SubscriptionRelayService(this::notifyUpdatedResource, isSecure);
     }
 
     public void updateServerList(Set<Server> servers) {

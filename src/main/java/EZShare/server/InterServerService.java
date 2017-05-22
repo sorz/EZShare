@@ -33,6 +33,7 @@ public class InterServerService implements Runnable {
     private final Set<Server> servers = new HashSet<>();
     private final Server localServer;
     private final ExecutorService executorService = Executors.newFixedThreadPool(MAX_QUERY_THREAD);
+    private final boolean secure;
     private Consumer<Set<Server>> serverListUpdatedCallback;
 
     private long exchangeIntervalMillis;
@@ -45,8 +46,10 @@ public class InterServerService implements Runnable {
      *                               an EXCHANGE command to random server on
      *                               the list.
      */
-    InterServerService(String hostname, int port, long exchangeIntervalMillis) {
+    InterServerService(String hostname, int port, boolean isSecure,
+                       long exchangeIntervalMillis) {
         localServer = new Server(hostname, port);
+        secure = isSecure;
         this.exchangeIntervalMillis = exchangeIntervalMillis;
     }
 
@@ -100,7 +103,7 @@ public class InterServerService implements Runnable {
      * @throws IOException if error on networking.
      */
     private void sendExchangeCommand(Server server) throws IOException {
-        EZInputOutput io = new EZInputOutput(server);
+        EZInputOutput io = new EZInputOutput(server, secure);
         Exchange exchange;
         synchronized (servers) {
             List<Server> serverList = new ArrayList<>(servers.size() + 1);
@@ -176,7 +179,7 @@ public class InterServerService implements Runnable {
     private void query(Query query, Server server,
                        Consumer<Resource> consumer)
             throws IOException {
-        EZInputOutput io = new EZInputOutput(server, MAX_SOCKET_TIMEOUT);
+        EZInputOutput io = new EZInputOutput(server, secure, MAX_SOCKET_TIMEOUT);
         io.sendJSON(query);
         Response response = io.readResponse();
         if (!response.isSuccess()) {

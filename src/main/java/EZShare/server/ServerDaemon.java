@@ -49,9 +49,9 @@ public class ServerDaemon implements ClientCommandHandler {
         bindPort = isSecure ? options.getSport() : options.getPort();
         this.resourceStorage = resourceStorage;
         interServerService = new InterServerService(
-                options.getHostname(), options.getPort(),
+                options.getHostname(), options.getPort(), secure,
                 options.getExchangeInterval() * 1000);
-        subscriptionService = new SubscriptionService();
+        subscriptionService = new SubscriptionService(isSecure);
         interServerService.setServerListUpdatedCallback(subscriptionService::updateServerList);
     }
 
