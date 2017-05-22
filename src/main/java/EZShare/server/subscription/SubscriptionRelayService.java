@@ -111,14 +111,24 @@ class SubscriptionRelayService implements RelayService {
                 // ignore
             }
             // try to read response (success or error)
-            Response response;
             try {
-                response = io.readResponse();
+                Response response = io.readJSON(Response.class);
                 LOGGER.fine(String.format("%s: %s", server, response));
+                continue;
             } catch (JsonMappingException e) {
-                LOGGER.info("unexpected message read from subscription " +
-                        "connection with " + server + ", ignored.");
+                // ignore
             }
+            // try to read result size
+            try {
+                ResultSize resultSize = io.readJSON(ResultSize.class);
+                LOGGER.fine(String.format("%s: %s", server, resultSize));
+                continue;
+            } catch (JsonMappingException e) {
+                // ignore
+            }
+            LOGGER.info("unexpected message read from subscription " +
+                    "connection with " + server + ", ignored.");
+            io.discardBuffer();
         }
     }
 

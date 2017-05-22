@@ -66,6 +66,10 @@ public class EZInputOutput {
         socket.setSoTimeout(millis);
     }
 
+    public void discardBuffer() {
+        readBufferedLine = null;
+    }
+
     /**
      * Read a UTF string from socket.
      * @return the String read.
