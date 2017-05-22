@@ -235,7 +235,7 @@ public class ServerDaemon implements ClientCommandHandler {
             LOGGER.fine(String.format("new resource (%s, %s) published.",
                     resource.getChannel(), uri));
         }
-        subscriptionService.notifyUpdatedResource(resource);
+        subscriptionService.notifyUpdatedResource(copyAsAnonymousResource(resource));
     }
 
     @Override
