@@ -70,22 +70,22 @@ class SubscriptionRelayService implements RelayService {
         // synchronized: to avoid connect one server twice.
         servers.stream()
                 .filter(s -> !connections.containsKey(s))
-                .forEach(server -> executorService.submit(() ->{
-                    try {
-                        connectWithNewServer(server);
-                    } catch (IOException e) {
-                        LOGGER.fine(String.format(
-                                "fail to connect with server %s: %s ", server, e));
-                    }
-                }));
+                .forEach(this::connectWithNewServer);
     }
 
-    private void connectWithNewServer(Server server) throws IOException {
-        EZInputOutput io = new EZInputOutput(server, 0);
+    private void connectWithNewServer(Server server) {
+        EZInputOutput io;
+        try {
+            io = new EZInputOutput(server, 0);
+        } catch (IOException e) {
+            LOGGER.fine(String.format(
+                    "fail to connect with server %s: %s ", server, e));
+            return;
+        }
         connections.put(server, io);
-        subscriptions.values().forEach(io::uncheckedSendJSON);
         executorService.submit(() -> {
            try {
+               subscriptions.values().forEach(io::uncheckedSendJSON);
                handleSubscriptionConnection(server, io);
            } catch (IOException e) {
                LOGGER.fine(String.format(
