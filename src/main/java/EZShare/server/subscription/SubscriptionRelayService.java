@@ -65,7 +65,8 @@ class SubscriptionRelayService implements RelayService {
 
     void updateServerList(Set<Server> servers) {
         this.servers = servers;
-        connectWithAllServers();
+        if (!subscriptions.isEmpty())
+            connectWithAllServers();
     }
 
     synchronized private void connectWithAllServers() {

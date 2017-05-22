@@ -51,7 +51,7 @@ public class ServerDaemon implements ClientCommandHandler {
         interServerService = new InterServerService(
                 options.getHostname(), options.getPort(), secure,
                 options.getExchangeInterval() * 1000);
-        subscriptionService = new SubscriptionService(isSecure);
+        subscriptionService = new SubscriptionService(secure);
         interServerService.setServerListUpdatedCallback(subscriptionService::updateServerList);
     }
 
