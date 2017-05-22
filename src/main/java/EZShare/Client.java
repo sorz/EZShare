@@ -3,6 +3,7 @@ package EZShare;
 import EZShare.client.ClientMain;
 import EZShare.client.ClientOptions;
 import EZShare.entities.Command;
+import EZShare.networking.SecuritySetupException;
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -35,7 +36,7 @@ public class Client extends CLILauncher<ClientOptions> {
     int run(ClientOptions options) {
         try {
             ClientMain.execute(options);
-        } catch (IOException e) {
+        } catch (IOException | SecuritySetupException e) {
             LOGGER.warning("I/O error: " + e);
             return -2;
         }

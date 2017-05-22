@@ -2,6 +2,8 @@ package EZShare.client;
 
 import EZShare.entities.*;
 import EZShare.networking.EZInputOutput;
+import EZShare.networking.SecurityHelper;
+import EZShare.networking.SecuritySetupException;
 
 import java.io.*;
 import java.net.Socket;
@@ -23,15 +25,24 @@ public class ClientMain {
     private final EZInputOutput io;
 
 
-    private ClientMain(String host, int port) throws IOException {
-        Socket socket = new Socket(host, port);
+    private ClientMain(String host, int port, boolean secure)
+            throws IOException, SecuritySetupException {
+        Socket socket;
+        if (secure)
+            socket = SecurityHelper.getClient()
+                    .getSSLContext().getSocketFactory()
+                    .createSocket(host, port);
+        else
+            socket = new Socket(host, port);
         io = new EZInputOutput(socket);
     }
 
-    public static void execute(ClientOptions options) throws IOException {
+    public static void execute(ClientOptions options)
+            throws IOException, SecuritySetupException {
         LOGGER.fine(String.format("%s to %s:%d...", options.getCommand(),
                 options.getHost(), options.getPort()));
-        ClientMain client = new ClientMain(options.getHost(), options.getPort());
+        ClientMain client = new ClientMain(options.getHost(), options.getPort(),
+                options.isSecure());
         try {
             Command cmdToSend;
             if (Command.CMD.EXCHANGE == options.getCommand()) {
