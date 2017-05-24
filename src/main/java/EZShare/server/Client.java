@@ -150,7 +150,7 @@ class Client implements Runnable {
                         if (subscriber == null || subscriber.isEmpty()) {
                             // As per spec, connection should close by server when
                             // all are subscribed.
-                            io.sendJSON(resourceCounter.getCount());
+                            io.sendJSON(new ResultSize(resourceCounter.getCount()));
                             return;
                         }
                         break;
