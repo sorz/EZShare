@@ -19,22 +19,21 @@ public class Subscriber {
         this.subscriber = subscriber;
     }
 
-    public void subscribe(String id, Resource template) {
-        subscribe(id, template, false);
-    }
-
     public void subscribe(String id, Resource template, boolean relay) {
         Subscription subscription = new Subscription(template);
         subscriptions.put(id, subscription);
+        // There are two IDs on relayed subscriptions,
+        // the "id" is one that client sent to us. And the "relayId" is one that
+        // we sent to other servers. This is returned by RelayService and used by
+        // RelayService.
         if (relay)
             subscription.relayId = relayService.subscribe(template);
     }
 
-    public int unsubscribe(String id) {
+    public void unsubscribe(String id) {
         Subscription s = subscriptions.remove(id);
         if (s.relayId != null)
             relayService.unsubscribe(s.relayId);
-        return s.count;
     }
 
     public void unsubscribeAll() {
@@ -51,23 +50,18 @@ public class Subscriber {
         if (!isDeliverable(resource))
             return;
         subscriber.accept(resource);
-        subscriptions.values().stream()
-                .filter(s -> resource.matchWithTemplate(s.getTemplate()))
-                .forEach(Subscription::increaseCounter);
     }
 
+    public boolean isEmpty() {
+        return subscriptions.isEmpty();
+    }
 
     private static class Subscription {
         Resource template;
-        int count;
         String relayId;
 
         Subscription(Resource template) {
             this.template = template;
-        }
-
-        synchronized void increaseCounter() {
-            count += 1;
         }
 
         Resource getTemplate() {

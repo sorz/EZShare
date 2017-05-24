@@ -129,6 +129,7 @@ class Client implements Runnable {
         Subscriber subscriber = null;
         // disable timeout since we are in persistent connection.
         io.setTimeout(0);
+        Counter<Resource> resourceCounter = new Counter<>();
         try {
             // noinspection InfiniteLoopStatement
             while (true) {
@@ -137,15 +138,21 @@ class Client implements Runnable {
                         Subscribe subCmd = (Subscribe) cmd;
                         if (subscriber == null)
                             subscriber = commandHandler
-                                    .doSubscription(subCmd, io::uncheckedSendJSON);
+                                    .doSubscription(subCmd, (res) ->
+                                            io.uncheckedSendJSON(resourceCounter.count(res)));
                         else
                             commandHandler.doSubscription(subCmd, subscriber);
                         io.sendJSON(Response.createSuccess(subCmd.getId()));
                         break;
                     case UNSUBSCRIBE:
-                        int count = subscriber == null ? 0 :
-                                commandHandler.doUnsubscribe((Unsubscribe) cmd, subscriber);
-                        io.sendJSON(new ResultSize(count));
+                        if (subscriber != null)
+                            commandHandler.doUnsubscribe((Unsubscribe) cmd, subscriber);
+                        if (subscriber == null || subscriber.isEmpty()) {
+                            // As per spec, connection should close by server when
+                            // all are subscribed.
+                            io.sendJSON(resourceCounter.getCount());
+                            return;
+                        }
                         break;
                     default:
                         LOGGER.info("unexpected command: " + cmd.getCMD());

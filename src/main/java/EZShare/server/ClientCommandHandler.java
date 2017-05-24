@@ -23,6 +23,6 @@ public interface ClientCommandHandler {
             throws CommandHandleException;
     void doSubscription(Subscribe cmd, Subscriber subscriber)
             throws CommandHandleException;
-    int doUnsubscribe(Unsubscribe cmd, Subscriber subscriber)
+    void doUnsubscribe(Unsubscribe cmd, Subscriber subscriber)
             throws CommandHandleException;
 }

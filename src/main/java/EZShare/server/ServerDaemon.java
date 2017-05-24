@@ -382,8 +382,8 @@ public class ServerDaemon implements ClientCommandHandler {
     }
 
     @Override
-    public int doUnsubscribe(Unsubscribe cmd, Subscriber subscriber)
+    public void doUnsubscribe(Unsubscribe cmd, Subscriber subscriber)
             throws CommandHandleException {
-        return subscriber.unsubscribe(cmd.getId());
+        subscriber.unsubscribe(cmd.getId());
     }
 }
