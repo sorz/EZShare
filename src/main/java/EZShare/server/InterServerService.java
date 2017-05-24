@@ -69,10 +69,8 @@ public class InterServerService implements Runnable {
                 stop();
             }
             Server server = getRandomServer();
-            if (server == null) {
-                LOGGER.fine("no remote server, skip exchange");
+            if (server == null)
                 continue;
-            }
             try {
                 sendExchangeCommand(server);
             } catch (IOException e) {
