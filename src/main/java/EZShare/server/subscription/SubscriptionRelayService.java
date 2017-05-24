@@ -80,7 +80,7 @@ class SubscriptionRelayService implements RelayService {
     private void connectWithNewServer(Server server) {
         EZInputOutput io;
         try {
-            io = new EZInputOutput(server, secure, 0);
+            io = new EZInputOutput(server, secure);
         } catch (IOException e) {
             LOGGER.fine(String.format(
                     "fail to connect with server %s: %s ", server, e));
@@ -106,6 +106,7 @@ class SubscriptionRelayService implements RelayService {
 
     private void handleSubscriptionConnection(Server server, EZInputOutput io)
             throws IOException {
+        io.setTimeout(0);
         while (isRunning) {
             // try to read updated resource:
             try {
