@@ -5,6 +5,7 @@ import EZShare.networking.EZInputOutput;
 import EZShare.server.ServerDaemon;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -90,10 +91,14 @@ class SubscriptionRelayService implements RelayService {
            try {
                subscriptions.values().forEach(io::uncheckedSendJSON);
                handleSubscriptionConnection(server, io);
+           } catch (EOFException e) {
+               LOGGER.fine(String.format(
+                       "subscription connection closed: %s (%s)", server, io));
            } catch (IOException e) {
                LOGGER.fine(String.format(
-                       "error on handle subscription connection with %s: %s",
+                       "I/O error on handle subscription connection with %s (%s)",
                        server, io));
+           } finally {
                connections.remove(server);
            }
         });
