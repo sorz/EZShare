@@ -316,7 +316,7 @@ public class ServerDaemon implements ClientCommandHandler {
                 consumer.accept(r);
             });
         }
-        return counter.num;
+        return counter.getCount();
     }
 
     @Override
@@ -385,13 +385,5 @@ public class ServerDaemon implements ClientCommandHandler {
     public int doUnsubscribe(Unsubscribe cmd, Subscriber subscriber)
             throws CommandHandleException {
         return subscriber.unsubscribe(cmd.getId());
-    }
-
-    private static class Counter<T> {
-        int num;
-        synchronized T count(T obj) {
-                num++;
-            return obj;
-        }
     }
 }
